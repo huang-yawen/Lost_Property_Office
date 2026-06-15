@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="bakend:war exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/bakend_war_exploded</output-path>
+    <root id="root">
+      <element id="javaee-facet-resources" facet="bakend/web/Web" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="bakend" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>
