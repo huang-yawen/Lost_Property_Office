@@ -1,41 +1,78 @@
 <template>
     <div class="my-items-page">
         <div class="my-items-container">
-            <div class="page-header">
-                <h1 class="page-title">我的发布</h1>
-                <p class="page-desc">管理您发布的招领和寻物信息</p>
+            <!-- 页面头部 + 统计卡片（同一行）- 参考个人中心样式 -->
+            <div class="page-header-row">
+                <div class="page-header">
+                    <h1 class="page-title">我的发布</h1>
+                    <p class="page-desc">管理您发布的招领和寻物信息</p>
+                </div>
+                <div class="header-right">
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ items.length }}</span>
+                            <span class="stat-label">全部</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ items.filter(i => i.type === 1).length }}</span>
+                            <span class="stat-label">招领</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ items.filter(i => i.type === 2).length }}</span>
+                            <span class="stat-label">寻物</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ items.filter(i => i.status === 2).length }}</span>
+                            <span class="stat-label">已解决</span>
+                        </div>
+                    </div>
+                    <router-link to="/create" class="header-create-btn">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        去发布
+                    </router-link>
+                </div>
             </div>
 
-            <!-- 筛选标签 -->
-            <div class="filter-tabs">
-                <button
-                    class="filter-tab"
-                    :class="{ active: currentFilter === 'all' }"
-                    @click="currentFilter = 'all'"
-                >
-                    全部
-                </button>
-                <button
-                    class="filter-tab"
-                    :class="{ active: currentFilter === 'found' }"
-                    @click="currentFilter = 'found'"
-                >
-                    招领
-                </button>
-                <button
-                    class="filter-tab"
-                    :class="{ active: currentFilter === 'lost' }"
-                    @click="currentFilter = 'lost'"
-                >
-                    寻物
-                </button>
-                <button
-                    class="filter-tab"
-                    :class="{ active: currentFilter === 'resolved' }"
-                    @click="currentFilter = 'resolved'"
-                >
-                    已解决
-                </button>
+            <!-- 筛选区域 - 参考首页样式 -->
+            <div class="filter-area">
+                <div class="filter-row">
+                    <div class="filter-label">状态</div>
+                    <div class="filter-options">
+                        <button
+                            class="filter-btn"
+                            :class="{ active: currentFilter === 'all' }"
+                            @click="currentFilter = 'all'"
+                        >全部</button>
+                        <button
+                            class="filter-btn type-found"
+                            :class="{ active: currentFilter === 'found' }"
+                            @click="currentFilter = 'found'"
+                        >招领</button>
+                        <button
+                            class="filter-btn type-lost"
+                            :class="{ active: currentFilter === 'lost' }"
+                            @click="currentFilter = 'lost'"
+                        >寻物</button>
+                        <button
+                            class="filter-btn"
+                            :class="{ active: currentFilter === 'resolved' }"
+                            @click="currentFilter = 'resolved'"
+                        >已解决</button>
+                    </div>
+                    <div class="filter-right">
+                        <button class="sort-btn" @click="toggleSort">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="21" y1="18" x2="11" y2="18"/>
+                                <polyline :points="sortOrder === 'desc' ? '3 10 7 6 11 10' : '3 14 7 18 11 14'"/>
+                                <line x1="21" y1="6" x2="15" y2="6"/>
+                            </svg>
+                            {{ sortOrder === 'desc' ? '最新优先' : '最早优先' }}
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- 加载状态 -->
@@ -54,14 +91,15 @@
 
             <!-- 空状态 -->
             <div v-else-if="filteredItems.length === 0" class="empty-section">
-                <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="#c0c4cc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="7" height="7"/>
-                    <rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/>
-                    <rect x="3" y="14" width="7" height="7"/>
-                </svg>
-                <p>暂无发布信息</p>
-                <router-link to="/create" class="btn-create">去发布</router-link>
+                <div class="empty-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                </div>
+                <h3 class="empty-title">暂无发布信息</h3>
+                <p class="empty-desc">您还没有发布任何招领或寻物信息</p>
             </div>
 
             <!-- 物品列表 -->
@@ -73,21 +111,30 @@
                 >
                     <div class="item-image" @click="router.push(`/item/${item.id}`)">
                         <img :src="getFirstImage(item.images)" :alt="item.title" @error="handleImageError" />
-                        <span class="item-type" :class="item.type === 1 ? 'type-found' : 'type-lost'">
+                        <div class="item-type-badge" :class="item.type === 1 ? 'badge-found' : 'badge-lost'">
                             {{ item.type === 1 ? '招领' : '寻物' }}
-                        </span>
+                        </div>
+                        <div v-if="item.status === 2" class="item-resolved-overlay">
+                            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            <span>已解决</span>
+                        </div>
                     </div>
                     <div class="item-info">
                         <div class="item-header">
                             <h3 class="item-title" @click="router.push(`/item/${item.id}`)">{{ item.title }}</h3>
                             <span class="item-status" :class="item.status === 2 ? 'status-resolved' : 'status-active'">
+                                <span class="status-dot"></span>
                                 {{ item.status === 2 ? '已解决' : '进行中' }}
                             </span>
                         </div>
                         <p class="item-desc">{{ item.description || '暂无描述' }}</p>
                         <div class="item-meta">
-                            <span class="meta-time">{{ formatTime(item.createTime) }}</span>
                             <span class="meta-category">{{ getCategoryName(item.categoryId) }}</span>
+                            <span class="meta-divider"></span>
+                            <span class="meta-time">{{ formatTime(item.createTime) }}</span>
                         </div>
                         <div class="item-actions">
                             <button class="action-btn action-edit" @click="router.push(`/edit/${item.id}`)">
@@ -137,6 +184,7 @@ const loading = ref(true)
 const items = ref([])
 const categories = ref([])
 const currentFilter = ref('all')
+const sortOrder = ref('desc')
 
 const filteredItems = computed(() => {
     let list = items.value
@@ -147,8 +195,18 @@ const filteredItems = computed(() => {
     } else if (currentFilter.value === 'resolved') {
         list = list.filter(i => i.status === 2)
     }
+    // 按时间排序
+    list = [...list].sort((a, b) => {
+        const timeA = new Date(a.createTime).getTime()
+        const timeB = new Date(b.createTime).getTime()
+        return sortOrder.value === 'desc' ? timeB - timeA : timeA - timeB
+    })
     return list
 })
+
+function toggleSort() {
+    sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
+}
 
 const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNFNEU3RUQiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSI4MCIgcj0iMjgiIGZpbGw9IiNDMEM0Q0MiLz48cGF0aCBkPSJNNTAgMTUwTDEwMCA5MEwxNTAgMTUwSDUwWiIgZmlsbD0iI0MwQzRDQyIvPjwvc3ZnPg=='
 
@@ -194,8 +252,8 @@ async function fetchCategories() {
 async function fetchItems() {
     loading.value = true
     try {
-        const res = await itemApi.getMyItems()
-        items.value = res.data || []
+        const res = await itemApi.getUserItems()
+        items.value = res.data?.list || []
     } catch (error) {
         console.error('获取物品列表失败:', error)
         ElMessage.error('获取列表失败')
@@ -249,70 +307,385 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ========== 暗黑模式 ========== */
+html.dark .my-items-page {
+    background: transparent;
+}
+
+html.dark .page-title {
+    color: #e0e0f0;
+}
+
+html.dark .page-desc {
+    color: #6a6a8a;
+}
+
+html.dark .page-header-row {
+    border-bottom-color: #2a2a3e;
+}
+
+html.dark .stat-value {
+    color: #a5b4fc;
+}
+
+html.dark .stat-label {
+    color: #6a6a8a;
+}
+
+html.dark .filter-area {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+}
+
+html.dark .filter-label {
+    color: #8a8aa0;
+}
+
+html.dark .filter-btn {
+    background: #22223a;
+    border-color: #2a2a3e;
+    color: #8a8aa0;
+}
+
+html.dark .filter-btn:hover {
+    border-color: #6366f1;
+    color: #a5b4fc;
+}
+
+html.dark .filter-btn.active {
+    background: #4f46e5;
+    color: #fff;
+    border-color: #4f46e5;
+}
+
+html.dark .filter-btn.type-found.active {
+    background: #059669;
+    border-color: #059669;
+}
+
+html.dark .filter-btn.type-lost.active {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+html.dark .sort-btn {
+    background: #22223a;
+    border-color: #2a2a3e;
+    color: #8a8aa0;
+}
+
+html.dark .sort-btn:hover {
+    border-color: #6366f1;
+    color: #a5b4fc;
+    background: #1a1a2e;
+}
+
+html.dark .loading-section {
+    background: rgba(26, 26, 46, 0.5);
+    border-color: #2a2a3e;
+}
+
+html.dark .skeleton-item + .skeleton-item {
+    border-top-color: #2a2a3e;
+}
+
+html.dark .skeleton-img {
+    background: linear-gradient(90deg, #1a1a2e 25%, #2a2a3e 50%, #1a1a2e 75%);
+    background-size: 200% 100%;
+}
+
+html.dark .skeleton-line {
+    background: linear-gradient(90deg, #1a1a2e 25%, #2a2a3e 50%, #1a1a2e 75%);
+    background-size: 200% 100%;
+}
+
+html.dark .empty-section {
+    background: rgba(26, 26, 46, 0.4);
+    border-color: #2a2a3e;
+}
+
+html.dark .empty-icon {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+}
+
+html.dark .empty-title {
+    color: #e0e0f0;
+}
+
+html.dark .empty-desc {
+    color: #6a6a8a;
+}
+
+html.dark .item-card {
+    background: rgba(26, 26, 46, 0.5);
+    border-color: #2a2a3e;
+}
+
+html.dark .item-card:hover {
+    border-color: #3a3a5e;
+    background: rgba(26, 26, 46, 0.7);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+html.dark .item-image {
+    background: #0f0f1a;
+}
+
+html.dark .item-title {
+    color: #e0e0f0;
+}
+
+html.dark .item-title:hover {
+    color: #a5b4fc;
+}
+
+html.dark .status-active {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
+
+html.dark .status-resolved {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+html.dark .item-desc {
+    color: #6a6a8a;
+}
+
+html.dark .meta-category {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+}
+
+html.dark .meta-divider {
+    background: #3a3a5e;
+}
+
+html.dark .meta-time {
+    color: #6a6a8a;
+}
+
+html.dark .action-btn {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+    color: #8a8aa0;
+}
+
+html.dark .action-edit:hover {
+    border-color: #6366f1;
+    color: #a5b4fc;
+    background: rgba(99, 102, 241, 0.1);
+}
+
+html.dark .action-resolve:hover {
+    border-color: #059669;
+    color: #34d399;
+    background: rgba(5, 150, 105, 0.1);
+}
+
+html.dark .action-delete:hover {
+    border-color: #dc2626;
+    color: #f87171;
+    background: rgba(220, 38, 38, 0.1);
+}
+
+/* ========== 我的发布页 ========== */
 .my-items-page {
-    min-height: 100vh;
-    background: #f0f2f5;
+    min-height: 100%;
 }
 
 .my-items-container {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 84px 24px 60px;
+    padding: 32px 16px 60px;
+}
+
+/* ===== 页面头部行（标题 + 统计 + 按钮同一行） ===== */
+.page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .page-header {
-    margin-bottom: 24px;
+    flex-shrink: 0;
 }
 
 .page-title {
-    font-size: 22px;
+    font-size: 26px;
     font-weight: 700;
-    color: #4a4a6a;
-    margin-bottom: 8px;
+    color: #1a1a2e;
+    margin: 0 0 4px;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
 }
 
 .page-desc {
     font-size: 14px;
-    color: #718096;
+    color: #8b8fa3;
+    margin: 0;
+    white-space: nowrap;
 }
 
-/* 筛选标签 */
-.filter-tabs {
+.header-right {
     display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    margin-left: auto;
 }
 
-.filter-tab {
-    padding: 8px 20px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background: #fff;
+/* 统计数据 - 参考个人中心样式 */
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    gap: 28px;
+    flex-shrink: 0;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #4f46e5;
+}
+
+.stat-label {
     font-size: 13px;
-    font-weight: 500;
-    color: #4a5568;
-    cursor: pointer;
-    transition: all 0.25s;
+    color: #a0aec0;
 }
 
-.filter-tab:hover {
+.header-create-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #fff;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+    flex-shrink: 0;
+}
+
+.header-create-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+}
+
+/* ===== 筛选区域 - 参考首页样式 ===== */
+.filter-area {
+    border: 1px solid #f0f0f0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    background: #fafaff;
+    margin-bottom: 24px;
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+}
+
+.filter-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #4a4a6a;
+    min-width: 30px;
+    flex-shrink: 0;
+}
+
+.filter-options {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.filter-btn {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #4a4a6a;
+    background: #fff;
+    border: 1px solid #e0e0f0;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1.4;
+}
+
+.filter-btn:hover {
     border-color: #a5b4fc;
     color: #4f46e5;
 }
 
-.filter-tab.active {
+.filter-btn.active {
     background: #4f46e5;
-    border-color: #4f46e5;
     color: #fff;
+    border-color: #4f46e5;
 }
 
-/* 加载状态 */
-.loading-section {
+.filter-btn.type-found.active {
+    background: #059669;
+    border-color: #059669;
+}
+
+.filter-btn.type-lost.active {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+/* 右侧排序 */
+.filter-right {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.sort-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #4a4a6a;
     background: #fff;
-    border-radius: 16px;
+    border: 1px solid #e0e0f0;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.sort-btn:hover {
+    border-color: #a5b4fc;
+    color: #4f46e5;
+    background: #f5f5ff;
+}
+
+/* ===== 加载状态 ===== */
+.loading-section {
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
     overflow: hidden;
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .skeleton-list {
@@ -327,14 +700,14 @@ onMounted(() => {
 }
 
 .skeleton-item + .skeleton-item {
-    border-top: 1px solid #f0f2f5;
+    border-top: 1px solid #eef1f5;
 }
 
 .skeleton-img {
     width: 100px;
     height: 100px;
     border-radius: 10px;
-    background: linear-gradient(90deg, #f0f2f5 25%, #e2e8f0 50%, #f0f2f5 75%);
+    background: linear-gradient(90deg, #eef2f7 25%, #e2e8f0 50%, #eef2f7 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     flex-shrink: 0;
@@ -350,7 +723,7 @@ onMounted(() => {
 
 .skeleton-line {
     height: 14px;
-    background: linear-gradient(90deg, #f0f2f5 25%, #e2e8f0 50%, #f0f2f5 75%);
+    background: linear-gradient(90deg, #eef2f7 25%, #e2e8f0 50%, #eef2f7 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: 4px;
@@ -365,94 +738,118 @@ onMounted(() => {
     100% { background-position: -200% 0; }
 }
 
-/* 空状态 */
+/* ===== 空状态 ===== */
 .empty-section {
     text-align: center;
-    padding: 80px 0;
-    background: #fff;
-    border-radius: 16px;
+    padding: 80px 20px;
+    background: rgba(255, 255, 255, 0.4);
     border: 1px solid #e2e8f0;
-}
-
-.empty-section svg {
-    margin-bottom: 16px;
-}
-
-.empty-section p {
-    font-size: 16px;
-    color: #4a5568;
-    margin-bottom: 20px;
-}
-
-.btn-create {
-    display: inline-block;
-    padding: 10px 24px;
-    background: linear-gradient(135deg, #4f46e5, #6366f1);
-    color: #fff;
     border-radius: 8px;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0ff;
+    border-radius: 20px;
+    color: #4f46e5;
+}
+
+.empty-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin: 0 0 8px;
+}
+
+.empty-desc {
     font-size: 14px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.25s;
+    color: #8b8fa3;
+    margin: 0;
 }
 
-.btn-create:hover {
-    background: linear-gradient(135deg, #4338ca, #4f46e5);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-}
-
-/* 物品列表 */
+/* ===== 物品列表 ===== */
 .items-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
 }
 
 .item-card {
     display: flex;
-    background: #fff;
-    border-radius: 16px;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
     overflow: hidden;
-    transition: box-shadow 0.25s;
+    transition: all 0.3s;
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .item-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.7);
 }
 
 .item-image {
     position: relative;
-    width: 180px;
-    min-height: 160px;
+    width: 200px;
+    min-height: 170px;
     flex-shrink: 0;
     cursor: pointer;
-    background: #f0f2f5;
+    background: #eef2f7;
+    overflow: hidden;
 }
 
 .item-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.4s;
 }
 
-.item-type {
+.item-card:hover .item-image img {
+    transform: scale(1.05);
+}
+
+.item-type-badge {
     position: absolute;
-    top: 8px;
-    left: 8px;
-    padding: 4px 10px;
-    border-radius: 6px;
+    top: 10px;
+    left: 10px;
+    padding: 4px 12px;
+    border-radius: 8px;
     font-size: 12px;
     font-weight: 600;
     color: #fff;
+    letter-spacing: 0.3px;
 }
 
-.type-found {
-    background: linear-gradient(135deg, #1a8a5c, #2ea86e);
+.badge-found {
+    background: linear-gradient(135deg, #059669, #10b981);
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
 }
 
-.type-lost {
-    background: linear-gradient(135deg, #c0392b, #e74c3c);
+.badge-lost {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+}
+
+.item-resolved-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .item-info {
@@ -468,13 +865,13 @@ onMounted(() => {
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .item-title {
     font-size: 16px;
     font-weight: 600;
-    color: #4a4a6a;
+    color: #1a1a2e;
     cursor: pointer;
     transition: color 0.2s;
     margin: 0;
@@ -489,70 +886,101 @@ onMounted(() => {
 }
 
 .item-status {
-    padding: 3px 10px;
-    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
 }
 
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
 .status-active {
-    background: #fff3cd;
-    color: #856404;
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-active .status-dot {
+    background: #f59e0b;
+    animation: pulse-dot 1.5s infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
 }
 
 .status-resolved {
-    background: #d4edda;
-    color: #155724;
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-resolved .status-dot {
+    background: #10b981;
 }
 
 .item-desc {
     font-size: 13px;
-    color: #718096;
-    margin-bottom: 12px;
+    color: #6b7280;
+    margin-bottom: 14px;
     line-height: 1.6;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    flex: 1;
 }
 
 .item-meta {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.meta-category {
+    padding: 3px 10px;
+    background: #eef2ff;
+    color: #4f46e5;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.meta-divider {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #d1d5db;
 }
 
 .meta-time {
     font-size: 12px;
-    color: #a0aec0;
-}
-
-.meta-category {
-    padding: 2px 8px;
-    background: #eef2ff;
-    color: #4f46e5;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 500;
+    color: #9ca3af;
 }
 
 .item-actions {
     display: flex;
     gap: 8px;
-    margin-top: auto;
 }
 
 .action-btn {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 6px 14px;
-    border-radius: 6px;
+    gap: 5px;
+    padding: 7px 16px;
+    border-radius: 8px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     border: 1px solid #e2e8f0;
@@ -568,29 +996,64 @@ onMounted(() => {
     border-color: #4f46e5;
     color: #4f46e5;
     background: #f0f0ff;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.12);
 }
 
 .action-resolve:hover {
-    border-color: #1a8a5c;
-    color: #1a8a5c;
+    border-color: #059669;
+    color: #059669;
     background: #f0faf5;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.12);
 }
 
 .action-delete:hover {
-    border-color: #c0392b;
-    color: #c0392b;
-    background: #fdf2f2;
+    border-color: #dc2626;
+    color: #dc2626;
+    background: #fef2f2;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.12);
 }
 
-/* 响应式 */
-@media (max-width: 640px) {
+/* ===== 响应式 ===== */
+@media (max-width: 768px) {
+    .my-items-container {
+        padding: 24px 16px 40px;
+    }
+
+    .page-header-row {
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .page-header {
+        width: 100%;
+    }
+
+    .page-title {
+        font-size: 22px;
+    }
+
+    .header-right {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .profile-stats {
+        gap: 16px;
+        justify-content: flex-start;
+    }
+
+    .header-create-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
     .item-card {
         flex-direction: column;
     }
 
     .item-image {
         width: 100%;
-        height: 180px;
+        height: 200px;
     }
 
     .item-info {
@@ -599,6 +1062,20 @@ onMounted(() => {
 
     .item-actions {
         flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-stats {
+        gap: 12px;
+    }
+
+    .stat-value {
+        font-size: 20px;
+    }
+
+    .stat-label {
+        font-size: 11px;
     }
 }
 </style>

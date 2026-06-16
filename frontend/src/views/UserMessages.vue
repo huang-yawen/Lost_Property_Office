@@ -523,6 +523,245 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ========== 暗黑模式 ========== */
+html.dark .messages-page {
+    background: transparent;
+}
+
+html.dark .page-title {
+    color: #e0e0f0;
+}
+
+html.dark .page-desc {
+    color: #6a6a8a;
+}
+
+html.dark .chat-container {
+    background: transparent;
+    border-color: #2a2a3e;
+}
+
+html.dark .chat-sidebar {
+    background: #1a1a2e;
+    border-right-color: #2a2a3e;
+}
+
+html.dark .sidebar-header {
+    border-bottom-color: #2a2a3e;
+}
+
+html.dark .sidebar-header h3 {
+    color: #e0e0f0;
+}
+
+html.dark .sidebar-search {
+    background: #22223a;
+    border-color: #2a2a3e;
+    color: #c8c8d8;
+}
+
+html.dark .sidebar-search:focus {
+    border-color: #6366f1;
+}
+
+html.dark .sidebar-search::placeholder {
+    color: #6a6a8a;
+}
+
+html.dark .conversation-item {
+    border-bottom-color: #2a2a3e;
+}
+
+html.dark .conversation-item:hover {
+    background: rgba(99, 102, 241, 0.08);
+}
+
+html.dark .conversation-item.active {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+html.dark .conv-avatar {
+    background: #22223a;
+}
+
+html.dark .conv-name {
+    color: #e0e0f0;
+}
+
+html.dark .conv-preview {
+    color: #6a6a8a;
+}
+
+html.dark .conv-time {
+    color: #6a6a8a;
+}
+
+html.dark .unread-badge {
+    background: #6366f1;
+    color: #fff;
+}
+
+html.dark .chat-main {
+    background: #0f0f1a;
+}
+
+html.dark .chat-header {
+    background: #1a1a2e;
+    border-bottom-color: #2a2a3e;
+}
+
+html.dark .chat-header-name {
+    color: #e0e0f0;
+}
+
+html.dark .chat-header-status {
+    color: #6a6a8a;
+}
+
+html.dark .chat-back-btn {
+    background: #22223a;
+    border-color: #2a2a3e;
+    color: #8a8aa0;
+}
+
+html.dark .chat-back-btn:hover {
+    background: #2a2a4e;
+    color: #e0e0f0;
+}
+
+html.dark .chat-messages {
+    background: #0f0f1a;
+}
+
+html.dark .msg-date-divider {
+    color: #6a6a8a;
+}
+
+html.dark .msg-date-divider::before,
+html.dark .msg-date-divider::after {
+    background: #2a2a3e;
+}
+
+html.dark .msg-bubble {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+    color: #c8c8d8;
+}
+
+html.dark .msg-bubble.self {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #fff;
+}
+
+html.dark .msg-time {
+    color: #6a6a8a;
+}
+
+html.dark .msg-time.self {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+html.dark .chat-input-area {
+    background: #1a1a2e;
+    border-top-color: #2a2a3e;
+}
+
+html.dark .chat-input {
+    background: #22223a;
+    border-color: #2a2a3e;
+    color: #c8c8d8;
+}
+
+html.dark .chat-input:focus {
+    border-color: #6366f1;
+    background: #2a2a4e;
+}
+
+html.dark .chat-input::placeholder {
+    color: #6a6a8a;
+}
+
+html.dark .chat-send-btn {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+}
+
+html.dark .chat-send-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
+}
+
+html.dark .empty-chat-icon {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+}
+
+html.dark .empty-chat-title {
+    color: #e0e0f0;
+}
+
+html.dark .empty-chat-desc {
+    color: #6a6a8a;
+}
+
+html.dark .empty-conv-icon {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+}
+
+html.dark .empty-conv-title {
+    color: #e0e0f0;
+}
+
+html.dark .empty-conv-desc {
+    color: #6a6a8a;
+}
+
+html.dark .dialog-info-header h2 {
+    color: #e0e0f0;
+}
+
+html.dark .dialog-desc h4 {
+    color: #c8c8d8;
+}
+
+html.dark .dialog-desc p {
+    color: #8a8aa0;
+}
+
+html.dark .dialog-detail-items {
+    background: #0f0f1a;
+}
+
+html.dark .dialog-detail-item {
+    color: #8a8aa0;
+}
+
+html.dark .dialog-detail-item svg {
+    color: #a5b4fc;
+}
+
+html.dark .dialog-category {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+}
+
+html.dark .dialog-time {
+    color: #6a6a8a;
+}
+
+html.dark .dialog-gallery {
+    background: #0f0f1a;
+}
+
+html.dark .dialog-gallery-main {
+    background: #0f0f1a;
+}
+
+html.dark .dialog-gallery-thumbs {
+    background: #0f0f1a;
+    border-top-color: #2a2a3e;
+}
+
+/* ========== 消息页面 ========== */
 .messages-page {
     height: 100%;
     display: flex;

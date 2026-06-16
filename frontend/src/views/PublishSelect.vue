@@ -45,6 +45,71 @@ function goPublish(type) {
 </script>
 
 <style scoped>
+/* ========== 暗黑模式 ========== */
+html.dark .publish-select-page {
+    background: transparent;
+}
+
+html.dark .ps-title {
+    color: #e0e0f0;
+}
+
+html.dark .ps-desc {
+    color: #6a6a8a;
+}
+
+html.dark .ps-card {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+}
+
+html.dark .ps-card:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .ps-card-found:hover {
+    border-color: #059669;
+    background: linear-gradient(180deg, #1a1a2e 0%, rgba(5, 150, 105, 0.1) 100%);
+}
+
+html.dark .ps-card-lost:hover {
+    border-color: #dc2626;
+    background: linear-gradient(180deg, #1a1a2e 0%, rgba(220, 38, 38, 0.1) 100%);
+}
+
+html.dark .ps-card-icon {
+    color: #6a6a8a;
+}
+
+html.dark .ps-card-title {
+    color: #e0e0f0;
+}
+
+html.dark .ps-card-desc {
+    color: #6a6a8a;
+}
+
+html.dark .ps-card-found .ps-card-action {
+    color: #34d399;
+    background: rgba(5, 150, 105, 0.15);
+}
+
+html.dark .ps-card-lost .ps-card-action {
+    color: #f87171;
+    background: rgba(220, 38, 38, 0.15);
+}
+
+html.dark .ps-card-found:hover .ps-card-action {
+    background: #059669;
+    color: #fff;
+}
+
+html.dark .ps-card-lost:hover .ps-card-action {
+    background: #dc2626;
+    color: #fff;
+}
+
+/* ========== 发布选择页 ========== */
 .publish-select-page {
     min-height: 100%;
     display: flex;

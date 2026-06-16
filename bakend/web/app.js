@@ -7,6 +7,7 @@ const itemRoutes = require('./routes/items');
 const categoryRoutes = require('./routes/categories');
 const messageRoutes = require('./routes/messages');
 const uploadRoutes = require('./routes/upload');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = 8080;
@@ -23,6 +24,7 @@ app.use('/api/items', itemRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 健康检查
 app.get('/api/health', (req, res) => {

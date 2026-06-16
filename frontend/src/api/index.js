@@ -78,6 +78,26 @@ export const authApi = {
     },
     updateProfile(data) {
         return request.put('/auth/profile', data)
+    },
+    // 提交校园认证
+    submitCertification(data) {
+        return request.post('/auth/certification', data)
+    },
+    // 获取认证申请列表（管理员）
+    getCertificationList(params) {
+        return request.get('/auth/certification/list', { params })
+    },
+    // 审核认证（管理员）
+    reviewCertification(data) {
+        return request.post('/auth/certification/review', data)
+    },
+    // 更新信誉积分
+    updateReputation(data) {
+        return request.post('/auth/reputation', data)
+    },
+    // 获取用户公开信息
+    getUsers(params) {
+        return request.get('/auth/users', { params })
     }
 }
 
@@ -166,6 +186,83 @@ export const uploadApi = {
                 'Content-Type': 'multipart/form-data'
             }
         })
+    }
+}
+
+// ============ 管理端 API ============
+// 创建 admin 专用的 axios 实例（使用 admin_token）
+const adminRequest = axios.create({
+    baseURL: 'http://localhost:8080/api',
+    timeout: 15000,
+    headers: {
+        'Content-Type': 'application/json'
+    }
+})
+
+adminRequest.interceptors.request.use(
+    config => {
+        const token = localStorage.getItem('admin_token')
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`
+        }
+        return config
+    },
+    error => {
+        return Promise.reject(error)
+    }
+)
+
+adminRequest.interceptors.response.use(
+    response => {
+        const res = response.data
+        if (res.code === 200) {
+            return res
+        }
+        ElMessage.error(res.message || '请求失败')
+        return Promise.reject(new Error(res.message || '请求失败'))
+    },
+    error => {
+        if (error.response) {
+            switch (error.response.status) {
+                case 401:
+                    localStorage.removeItem('admin_token')
+                    localStorage.removeItem('admin_info')
+                    ElMessage.error('管理员登录已过期，请重新登录')
+                    router.push('/admin/login')
+                    break
+                case 403:
+                    ElMessage.error('没有权限访问')
+                    break
+                case 404:
+                    ElMessage.error('请求的资源不存在')
+                    break
+                case 500:
+                    ElMessage.error('服务器错误')
+                    break
+                default:
+                    ElMessage.error(error.response.data?.message || '请求失败')
+            }
+        } else if (error.request) {
+            ElMessage.error('网络错误，请检查网络连接')
+        } else {
+            ElMessage.error('请求配置错误')
+        }
+        return Promise.reject(error)
+    }
+)
+
+export const adminApi = {
+    login(data) {
+        return request.post('/admin/login', data)
+    },
+    getCertificationList(params) {
+        return adminRequest.get('/admin/certifications', { params })
+    },
+    reviewCertification(data) {
+        return adminRequest.put(`/admin/certifications/${data.userId}`, data)
+    },
+    getUsers() {
+        return adminRequest.get('/admin/users')
     }
 }
 

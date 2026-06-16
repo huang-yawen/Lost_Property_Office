@@ -182,6 +182,67 @@ async function handleRegister() {
 </script>
 
 <style scoped>
+/* ========== 暗黑模式 ========== */
+html.dark .auth-card {
+    background: #1a1a2e;
+}
+
+html.dark .auth-title {
+    color: #e0e0f0;
+}
+
+html.dark .auth-desc {
+    color: #8a8aa0;
+}
+
+html.dark .form-label {
+    color: #c8c8d8;
+}
+
+html.dark .input-wrapper {
+    background: #22223a;
+    border-color: #2a2a3e;
+}
+
+html.dark .input-wrapper:focus-within {
+    border-color: #6366f1;
+    background: #1a1a2e;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+html.dark .input-icon {
+    color: #6a6a8a;
+}
+
+html.dark .form-input {
+    color: #c8c8d8;
+}
+
+html.dark .form-input::placeholder {
+    color: #6a6a8a;
+}
+
+html.dark .toggle-password {
+    color: #6a6a8a;
+}
+
+html.dark .toggle-password:hover {
+    color: #a5b4fc;
+}
+
+html.dark .auth-footer {
+    color: #8a8aa0;
+}
+
+html.dark .auth-link {
+    color: #a5b4fc;
+}
+
+html.dark .auth-link:hover {
+    color: #818cf8;
+}
+
+/* ========== 注册页 ========== */
 .auth-page {
     height: 100vh;
     display: flex;

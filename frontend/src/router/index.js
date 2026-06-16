@@ -61,6 +61,30 @@ const routes = [
         name: 'Messages',
         component: () => import('../views/UserMessages.vue'),
         meta: { title: '我的消息', requiresAuth: true }
+    },
+    {
+        path: '/dashboard',
+        name: 'Dashboard',
+        component: () => import('../views/Dashboard.vue'),
+        meta: { title: '数据看板', requiresAuth: true }
+    },
+    {
+        path: '/admin/login',
+        name: 'AdminLogin',
+        component: () => import('../views/AdminLogin.vue'),
+        meta: { title: '管理端登录', hideLayout: true }
+    },
+    {
+        path: '/admin/certification',
+        name: 'AdminCertification',
+        component: () => import('../views/AdminCertification.vue'),
+        meta: { title: '认证审核', requiresAdmin: true }
+    },
+    {
+        path: '/admin/users',
+        name: 'AdminUsers',
+        component: () => import('../views/AdminUsers.vue'),
+        meta: { title: '用户列表', requiresAdmin: true }
     }
 ]
 
@@ -74,7 +98,16 @@ router.beforeEach((to, from, next) => {
     // 设置页面标题
     document.title = to.meta.title || '校园失物招领'
 
-    // 检查是否需要登录
+    // 检查是否需要管理员登录
+    if (to.meta.requiresAdmin) {
+        const adminToken = localStorage.getItem('admin_token')
+        if (!adminToken) {
+            next({ name: 'AdminLogin', query: { redirect: to.fullPath } })
+            return
+        }
+    }
+
+    // 检查是否需要用户登录
     if (to.meta.requiresAuth) {
         const userStore = useUserStore()
         if (!userStore.isLoggedIn) {

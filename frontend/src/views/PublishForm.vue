@@ -139,6 +139,43 @@
                 </div>
             </form>
         </div>
+        <!-- 智能匹配结果弹窗 -->
+        <el-dialog v-model="showMatchResult" title="🎉 发现匹配信息" width="560px" :close-on-click-modal="false">
+            <div class="match-result-body">
+                <p class="match-result-hint">系统发现以下可能与您发布的信息匹配的物品：</p>
+                <div
+                    v-for="item in matchResult"
+                    :key="item.id"
+                    class="match-item"
+                    @click="router.push(`/item/${item.id}`)"
+                >
+                    <div class="match-item-img">
+                        <img v-if="item.images" :src="getFirstImage(item.images)" alt="" />
+                        <svg v-else viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#c0c4cc" stroke-width="1.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                    </div>
+                    <div class="match-item-info">
+                        <h4>{{ item.title }}</h4>
+                        <p>{{ item.description || '暂无描述' }}</p>
+                        <span class="match-item-type" :class="item.type === 1 ? 'type-found' : 'type-lost'">
+                            {{ item.type === 1 ? '招领' : '寻物' }}
+                        </span>
+                        <span class="match-item-score" v-if="item.matchScore">
+                            匹配度 {{ Math.round(item.matchScore * 100) }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="showMatchResult = false; router.push('/')">稍后查看</el-button>
+                    <el-button type="primary" @click="showMatchResult = false; router.push('/')">知道了</el-button>
+                </div>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
@@ -146,7 +183,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { itemApi, categoryApi, uploadApi } from '../api'
+import { itemApi, categoryApi, uploadApi, matchApi } from '../api'
 
 const router = useRouter()
 const route = useRoute()
@@ -157,6 +194,9 @@ const categories = ref([])
 const fileInput = ref(null)
 const imageList = ref([])
 const uploadedUrls = ref([])
+const showMatchResult = ref(false)
+const matchResult = ref(null)
+const matchLoading = ref(false)
 
 const typeLabel = computed(() => {
     return form.type === 1 ? '发布招领信息' : '发布寻物信息'
@@ -207,6 +247,15 @@ async function fetchItemDetail() {
         console.error('获取物品详情失败:', error)
         ElMessage.error('获取物品信息失败')
         router.push('/')
+    }
+}
+
+function getFirstImage(images) {
+    try {
+        const arr = JSON.parse(images)
+        return arr[0] || ''
+    } catch {
+        return ''
     }
 }
 
@@ -294,8 +343,24 @@ async function handleSubmit() {
             await itemApi.update(route.params.id, data)
             ElMessage.success('修改成功')
         } else {
-            await itemApi.create(data)
+            const res = await itemApi.create(data)
             ElMessage.success('发布成功')
+            // 智能匹配
+            if (res.data?.id) {
+                matchLoading.value = true
+                try {
+                    const matchRes = await matchApi.smartMatch(res.data.id)
+                    if (matchRes.data && matchRes.data.length > 0) {
+                        matchResult.value = matchRes.data
+                        showMatchResult.value = true
+                        return
+                    }
+                } catch (e) {
+                    console.error('智能匹配失败:', e)
+                } finally {
+                    matchLoading.value = false
+                }
+            }
         }
         router.push('/')
     } catch (error) {
@@ -319,6 +384,99 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ========== 暗黑模式 ========== */
+html.dark .publish-form-page {
+    background: transparent;
+}
+
+html.dark .pf-header {
+    background: #1a1a2e;
+    border-bottom-color: #2a2a3e;
+}
+
+html.dark .pf-back {
+    color: #8a8aa0;
+}
+
+html.dark .pf-back:hover {
+    background: #2a2a4e;
+    color: #a5b4fc;
+}
+
+html.dark .pf-title {
+    color: #e0e0f0;
+}
+
+html.dark .pf-label {
+    color: #c8c8d8;
+}
+
+html.dark .pf-input {
+    background: #22223a;
+    border-color: #2a2a3e;
+    color: #c8c8d8;
+}
+
+html.dark .pf-input:focus {
+    border-color: #6366f1;
+    background: #2a2a4e;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+html.dark .pf-input::placeholder {
+    color: #6a6a8a;
+}
+
+html.dark .pf-textarea {
+    background: #22223a;
+    border-color: #2a2a3e;
+    color: #c8c8d8;
+}
+
+html.dark .pf-textarea:focus {
+    border-color: #6366f1;
+    background: #2a2a4e;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+html.dark .pf-textarea::placeholder {
+    color: #6a6a8a;
+}
+
+html.dark .pf-count {
+    color: #6a6a8a;
+}
+
+html.dark .pf-select :deep(.el-input__wrapper) {
+    background: #22223a;
+    border-color: #2a2a3e;
+}
+
+html.dark .pf-select :deep(.el-input__wrapper.is-focus) {
+    border-color: #6366f1;
+    background: #2a2a4e;
+}
+
+html.dark .pf-upload-preview {
+    border-color: #2a2a3e;
+}
+
+html.dark .pf-upload-btn {
+    border-color: #3a3a5e;
+    color: #6a6a8a;
+}
+
+html.dark .pf-upload-btn:hover {
+    border-color: #6366f1;
+    color: #a5b4fc;
+    background: rgba(99, 102, 241, 0.1);
+}
+
+html.dark .pf-upload-tip {
+    color: #6a6a8a;
+}
+
+/* ========== 发布表单页 ========== */
 .publish-form-page {
     min-height: 100%;
     display: flex;
@@ -579,5 +737,131 @@ onMounted(() => {
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+/* 智能匹配结果弹窗 */
+.match-result-body {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.match-result-hint {
+    font-size: 14px;
+    color: #4a5568;
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.match-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.match-item:hover {
+    border-color: #6366f1;
+    background: #f8f8ff;
+    transform: translateX(4px);
+}
+
+.match-item-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #f0f2f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.match-item-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.match-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.match-item-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a4a6a;
+    margin: 0 0 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.match-item-info p {
+    font-size: 12px;
+    color: #8a8aa0;
+    margin: 0 0 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.match-item-type {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-right: 6px;
+}
+
+.type-found {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.type-lost {
+    background: #fbe9e7;
+    color: #c62828;
+}
+
+.match-item-score {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #eef2ff;
+    color: #4f46e5;
+}
+
+html.dark .match-result-hint {
+    color: #8a8aa0;
+}
+
+html.dark .match-item {
+    border-color: #2a2a3e;
+}
+
+html.dark .match-item:hover {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.08);
+}
+
+html.dark .match-item-info h4 {
+    color: #c8c8d8;
+}
+
+html.dark .match-item-info p {
+    color: #6a6a8a;
+}
+
+html.dark .match-item-img {
+    background: #1a1a2e;
 }
 </style>

@@ -255,7 +255,7 @@ async function fetchItems() {
     try {
         const params = {
             page: currentPage.value,
-            size: pageSize,
+            pageSize: pageSize,
             sort: sortOrder.value
         }
         if (activeCategory.value > 0) params.categoryId = activeCategory.value
@@ -269,7 +269,7 @@ async function fetchItems() {
         }
 
         const res = await itemApi.getList(params)
-        items.value = res.data?.records || []
+        items.value = res.data?.list || []
         total.value = res.data?.total || 0
     } catch (error) {
         console.error('获取列表失败:', error)
@@ -326,6 +326,160 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ========== 暗黑模式 ========== */
+html.dark .search-box {
+    background: #22223a;
+    border-color: #2a2a3e;
+}
+
+html.dark .search-box:focus-within {
+    border-color: #6366f1;
+    background: #1a1a2e;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+html.dark .search-input {
+    color: #c8c8d8;
+}
+
+html.dark .search-input::placeholder {
+    color: #6a6a8a;
+}
+
+html.dark .filter-area {
+    background: #22223a;
+    border-color: #2a2a3e;
+}
+
+html.dark .filter-row + .filter-row {
+    border-top-color: #2a2a3e;
+}
+
+html.dark .filter-label {
+    color: #8a8aa0;
+}
+
+html.dark .filter-btn {
+    color: #8a8aa0;
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+}
+
+html.dark .filter-btn:hover {
+    border-color: #6366f1;
+    color: #a5b4fc;
+}
+
+html.dark .filter-btn.active {
+    background: #4f46e5;
+    color: #fff;
+    border-color: #4f46e5;
+}
+
+html.dark .filter-btn.type-found.active {
+    background: #059669;
+    border-color: #059669;
+}
+
+html.dark .filter-btn.type-lost.active {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+html.dark .category-chip {
+    color: #8a8aa0;
+    background: #1a1a2e;
+}
+
+html.dark .category-chip:hover {
+    background: #2a2a3e;
+    color: #a5b4fc;
+}
+
+html.dark .category-chip.active {
+    background: #4f46e5;
+    color: #fff;
+}
+
+html.dark .sort-btn {
+    color: #8a8aa0;
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+}
+
+html.dark .sort-btn:hover {
+    border-color: #6366f1;
+    color: #a5b4fc;
+    background: #2a2a3e;
+}
+
+html.dark .content-divider {
+    background: #2a2a3e;
+}
+
+html.dark .item-card {
+    background: #22223a;
+    border-color: #2a2a3e;
+}
+
+html.dark .item-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border-color: transparent;
+}
+
+html.dark .item-title {
+    color: #e0e0f0;
+}
+
+html.dark .item-desc {
+    color: #8a8aa0;
+}
+
+html.dark .meta-category {
+    background: #2a2a3e;
+    color: #a5b4fc;
+}
+
+html.dark .meta-location {
+    color: #8a8aa0;
+}
+
+html.dark .item-footer {
+    border-top-color: #2a2a3e;
+}
+
+html.dark .item-time {
+    color: #6a6a8a;
+}
+
+html.dark .item-author {
+    color: #8a8aa0;
+}
+
+html.dark .pagination-section {
+    border-top-color: #2a2a3e;
+}
+
+html.dark .skeleton-card {
+    background: #22223a;
+    border-color: #2a2a3e;
+}
+
+html.dark .skeleton-image,
+html.dark .skeleton-line {
+    background: linear-gradient(90deg, #2a2a3e 25%, #3a3a5a 50%, #2a2a3e 75%);
+    background-size: 200% 100%;
+}
+
+html.dark .empty-section p {
+    color: #8a8aa0;
+}
+
+html.dark .item-image {
+    background: #2a2a3e;
+}
+
+/* ========== 首页 ========== */
 .home-page {
     min-height: 100%;
 }
@@ -338,15 +492,15 @@ onMounted(() => {
 
 /* 搜索栏 */
 .search-section {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 }
 
 .search-box {
     display: flex;
     align-items: center;
     background: #fafaff;
-    border-radius: 8px;
-    padding: 4px 4px 4px 16px;
+    border-radius: 6px;
+    padding: 3px 3px 3px 12px;
     border: 1px solid #f0f0f0;
     transition: all 0.25s;
 }
@@ -354,20 +508,22 @@ onMounted(() => {
 .search-box:focus-within {
     border-color: #4f46e5;
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.08);
 }
 
 .search-icon {
     color: #a0aec0;
     flex-shrink: 0;
+    width: 16px;
+    height: 16px;
 }
 
 .search-input {
     flex: 1;
     border: none;
     outline: none;
-    padding: 12px 12px;
-    font-size: 15px;
+    padding: 6px 8px;
+    font-size: 13px;
     color: #4a4a6a;
     background: transparent;
 }
@@ -379,7 +535,7 @@ onMounted(() => {
 .search-clear {
     background: none;
     border: none;
-    padding: 8px;
+    padding: 4px;
     cursor: pointer;
     color: #a0aec0;
     display: flex;
@@ -392,12 +548,12 @@ onMounted(() => {
 }
 
 .search-btn {
-    padding: 10px 24px;
+    padding: 5px 14px;
     background: #4f46e5;
     color: #fff;
     border: none;
-    border-radius: 6px;
-    font-size: 14px;
+    border-radius: 4px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.25s;
@@ -410,44 +566,44 @@ onMounted(() => {
 /* ===== 筛选区域：三行简约布局 ===== */
 .filter-area {
     border: 1px solid #f0f0f0;
-    border-radius: 8px;
-    padding: 16px 20px;
+    border-radius: 6px;
+    padding: 10px 14px;
     background: #fafaff;
 }
 
 .filter-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 6px 0;
+    gap: 8px;
+    padding: 3px 0;
 }
 
 .filter-row + .filter-row {
     border-top: 1px solid #eef1f5;
-    margin-top: 6px;
-    padding-top: 12px;
+    margin-top: 3px;
+    padding-top: 7px;
 }
 
 .filter-label {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     color: #4a4a6a;
-    min-width: 36px;
+    min-width: 30px;
     flex-shrink: 0;
 }
 
 .filter-options {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     flex-wrap: wrap;
     flex: 1;
 }
 
 .filter-btn {
-    padding: 5px 14px;
-    border-radius: 6px;
-    font-size: 13px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px;
     font-weight: 500;
     color: #4a4a6a;
     background: #fff;
@@ -480,9 +636,9 @@ onMounted(() => {
 
 /* 分类标签（chip 样式） */
 .category-chip {
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 13px;
+    padding: 2px 9px;
+    border-radius: 3px;
+    font-size: 12px;
     color: #4a4a6a;
     background: #f0f0ff;
     cursor: pointer;
@@ -510,10 +666,10 @@ onMounted(() => {
 .sort-btn {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-size: 12px;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
     color: #4a4a6a;
     background: #fff;
     border: 1px solid #e0e0f0;

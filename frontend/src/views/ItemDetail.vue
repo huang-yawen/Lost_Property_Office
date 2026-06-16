@@ -86,6 +86,12 @@
                                         <circle cx="12" cy="7" r="4"/>
                                     </svg>
                                     <span>{{ item.username || '匿名' }}</span>
+                                    <span v-if="item.certified" class="detail-cert-badge" title="已通过校园认证">
+                                        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                                        </svg>
+                                        已认证
+                                    </span>
                                 </div>
                                 <div class="detail-item">
                                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -142,6 +148,19 @@
                                 </svg>
                                 留言私信
                             </button>
+                            <button
+                                class="action-btn action-share"
+                                @click="handleShare"
+                            >
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="18" cy="5" r="3"/>
+                                    <circle cx="6" cy="12" r="3"/>
+                                    <circle cx="18" cy="19" r="3"/>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                </svg>
+                                分享
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -163,6 +182,9 @@
                         <el-button type="primary" @click="handleSendMessage" :loading="sendingMessage">发送</el-button>
                     </template>
                 </el-dialog>
+
+                <!-- 分享海报 -->
+                <SharePoster :visible="showPoster" :item="item" @close="showPoster = false" />
             </template>
         </div>
     </div>
@@ -174,6 +196,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { itemApi, categoryApi, messageApi } from '../api'
 import { useUserStore } from '../stores/user'
+import SharePoster from '../components/SharePoster.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -187,6 +210,7 @@ const currentIndex = ref(0)
 const showMessageDialog = ref(false)
 const messageContent = ref('')
 const sendingMessage = ref(false)
+const showPoster = ref(false)
 
 const images = computed(() => {
     if (!item.value?.images) return []
@@ -308,6 +332,10 @@ async function handleSendMessage() {
     }
 }
 
+function handleShare() {
+    showPoster.value = true
+}
+
 function goBack() {
     router.back()
 }
@@ -319,6 +347,140 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ========== 暗黑模式 ========== */
+html.dark .detail-page {
+    background: #0f0f1a;
+}
+
+html.dark .detail-container {
+    background: transparent;
+}
+
+html.dark .loading-section {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+}
+
+html.dark .skeleton-gallery {
+    background: linear-gradient(90deg, #1a1a2e 25%, #2a2a3e 50%, #1a1a2e 75%);
+    background-size: 200% 100%;
+}
+
+html.dark .skeleton-line {
+    background: linear-gradient(90deg, #1a1a2e 25%, #2a2a3e 50%, #1a1a2e 75%);
+    background-size: 200% 100%;
+}
+
+html.dark .error-section {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+}
+
+html.dark .error-section p {
+    color: #c8c8d8;
+}
+
+html.dark .detail-close-btn {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+    color: #8a8aa0;
+}
+
+html.dark .detail-close-btn:hover {
+    background: #22223a;
+    color: #e0e0f0;
+}
+
+html.dark .detail-card {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+}
+
+html.dark .gallery-main {
+    background: #0f0f1a;
+}
+
+html.dark .gallery-thumbs {
+    background: #0f0f1a;
+    border-top-color: #2a2a3e;
+}
+
+html.dark .info-title {
+    color: #e0e0f0;
+}
+
+html.dark .meta-category {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+}
+
+html.dark .meta-time {
+    color: #6a6a8a;
+}
+
+html.dark .info-label {
+    color: #c8c8d8;
+}
+
+html.dark .info-desc p {
+    color: #8a8aa0;
+}
+
+html.dark .info-detail {
+    background: #0f0f1a;
+}
+
+html.dark .detail-item {
+    color: #8a8aa0;
+}
+
+html.dark .info-actions {
+    border-top-color: #2a2a3e;
+}
+
+html.dark .action-btn {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+    color: #8a8aa0;
+}
+
+html.dark .action-edit:hover {
+    border-color: #6366f1;
+    color: #a5b4fc;
+    background: rgba(99, 102, 241, 0.1);
+}
+
+html.dark .action-resolve:hover {
+    border-color: #2ea86e;
+    color: #2ea86e;
+    background: rgba(46, 168, 110, 0.1);
+}
+
+html.dark .action-delete:hover {
+    border-color: #e74c3c;
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+html.dark .message-textarea {
+    background: #22223a;
+    border-color: #2a2a3e;
+    color: #c8c8d8;
+}
+
+html.dark .message-textarea:focus {
+    border-color: #6366f1;
+}
+
+html.dark .message-textarea::placeholder {
+    color: #6a6a8a;
+}
+
+html.dark .message-count {
+    color: #6a6a8a;
+}
+
+/* ========== 详情页 ========== */
 .detail-page {
     min-height: 100vh;
     background: #f0f2f5;
@@ -333,7 +495,7 @@ onMounted(() => {
 /* 加载状态 */
 .loading-section {
     background: #fff;
-    border-radius: 16px;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
     overflow: hidden;
 }
@@ -381,7 +543,7 @@ onMounted(() => {
     text-align: center;
     padding: 80px 0;
     background: #fff;
-    border-radius: 16px;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
 }
 
@@ -440,7 +602,7 @@ onMounted(() => {
 /* 详情卡片 */
 .detail-card {
     background: #fff;
-    border-radius: 16px;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
     overflow: hidden;
     display: grid;
@@ -595,7 +757,7 @@ onMounted(() => {
     gap: 12px;
     padding: 16px;
     background: #f7fafc;
-    border-radius: 12px;
+    border-radius: 8px;
 }
 
 .detail-item {
@@ -669,6 +831,32 @@ onMounted(() => {
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
+.action-share {
+    background: #fff;
+    border-color: #e2e8f0;
+    color: #4a5568;
+}
+
+.action-share:hover {
+    border-color: #10b981;
+    color: #10b981;
+    background: #f0faf5;
+}
+
+/* 认证标识 */
+.detail-cert-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #059669;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 1px 6px;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
 /* 留言对话框 */
 .message-form {
     position: relative;
@@ -678,7 +866,7 @@ onMounted(() => {
     width: 100%;
     padding: 12px 16px;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 14px;
     color: #4a4a6a;
     outline: none;

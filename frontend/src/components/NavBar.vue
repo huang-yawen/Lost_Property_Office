@@ -58,6 +58,36 @@
                 </svg>
                 <span class="nav-label">我的发布</span>
             </router-link>
+
+            <router-link v-if="userStore.isLoggedIn" to="/dashboard" class="nav-item" :class="{ active: $route.path === '/dashboard' }">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span class="nav-label">数据看板</span>
+            </router-link>
+
+            <!-- 管理端入口 -->
+            <div class="nav-divider"></div>
+            <div class="nav-section-label">管理端</div>
+            <router-link to="/admin/certification" class="nav-item" :class="{ active: $route.path.startsWith('/admin/certification') }">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 12l2 2 4-4"/>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                </svg>
+                <span class="nav-label">认证审核</span>
+            </router-link>
+            <router-link to="/admin/users" class="nav-item" :class="{ active: $route.path.startsWith('/admin/users') }">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span class="nav-label">用户列表</span>
+            </router-link>
         </nav>
 
         <!-- 底部版本信息 -->
@@ -104,6 +134,57 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ========== 暗黑模式 ========== */
+html.dark .sidebar {
+    background: #1a1a2e;
+    border-right-color: #2a2a3e;
+}
+
+html.dark .sidebar-logo {
+    border-bottom-color: #2a2a3e;
+}
+
+html.dark .logo-link {
+    color: #e0e0f0;
+}
+
+html.dark .logo-text {
+    color: #e0e0f0;
+}
+
+html.dark .nav-item {
+    color: #8a8aa0;
+}
+
+html.dark .nav-item:hover {
+    background: #2a2a3e;
+    color: #a5b4fc;
+}
+
+html.dark .nav-item.active {
+    background: #2e2e4a;
+    color: #a5b4fc;
+}
+
+html.dark .nav-item-create {
+    background: #2e2e4a;
+    color: #a5b4fc !important;
+}
+
+html.dark .nav-item-create:hover {
+    background: #3a3a5a;
+    color: #c7d2fe !important;
+}
+
+html.dark .sidebar-footer {
+    border-top-color: #2a2a3e;
+}
+
+html.dark .version-text {
+    color: #6a6a8a;
+}
+
+/* ========== 侧边栏 ========== */
 /* ========== 侧边栏 ========== */
 .sidebar {
     position: fixed;
@@ -241,11 +322,46 @@ onUnmounted(() => {
     flex: 0;
 }
 
+.nav-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 8px 12px;
+}
+
+.sidebar.collapsed .nav-divider {
+    margin: 8px 0;
+}
+
+.nav-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #a0aec0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 16px 4px;
+    transition: opacity 0.2s ease;
+}
+
+.sidebar.collapsed .nav-section-label {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+html.dark .nav-divider {
+    background: #2a2a3e;
+}
+
+html.dark .nav-section-label {
+    color: #6a6a8a;
+}
+
 .nav-badge {
     min-width: 20px;
     height: 20px;
     padding: 0 6px;
-    border-radius: 10px;
+    border-radius: 8px;
     background: #e74c3c;
     color: #fff;
     font-size: 11px;

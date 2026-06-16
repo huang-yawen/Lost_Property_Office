@@ -52,6 +52,22 @@
                                 </svg>
                                 我的发布
                             </router-link>
+                            <router-link to="/dashboard" class="drop-item" @click="showUserMenu = false">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                </svg>
+                                数据看板
+                            </router-link>
+                            <div class="drop-divider"></div>
+                            <div class="drop-item" @click="toggleDarkMode">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                                </svg>
+                                {{ themeStore.isDark ? '浅色模式' : '深色模式' }}
+                            </div>
                             <div class="drop-divider"></div>
                             <div class="drop-item drop-logout" @click="handleLogout">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -78,6 +94,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
+import { useThemeStore } from '../stores/theme'
 import { messageApi } from '../api'
 
 defineProps({
@@ -88,10 +105,16 @@ defineEmits(['toggle-sidebar'])
 
 const router = useRouter()
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 
 const showUserMenu = ref(false)
 const userMenuRef = ref(null)
 const unreadCount = ref(0)
+
+function toggleDarkMode() {
+    showUserMenu.value = false
+    themeStore.toggle()
+}
 
 function handleLogout() {
     showUserMenu.value = false
@@ -132,6 +155,92 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ========== 暗黑模式 ========== */
+html.dark .topbar {
+    background: #12121e;
+    border-bottom-color: #1e1e32;
+}
+
+html.dark .hamburger-btn {
+    color: #8a8aa0;
+}
+
+html.dark .hamburger-btn:hover {
+    background: #1a1a2e;
+    color: #818cf8;
+}
+
+html.dark .topbar-icon-btn {
+    color: #8a8aa0;
+}
+
+html.dark .topbar-icon-btn:hover {
+    background: #1a1a2e;
+    color: #818cf8;
+}
+
+html.dark .user-trigger:hover {
+    background: #1a1a2e;
+}
+
+html.dark .user-name-sm {
+    color: #c8c8d8;
+}
+
+html.dark .arrow-down {
+    color: #6a6a8a;
+}
+
+html.dark .user-dropdown {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .drop-item {
+    color: #c8c8d8;
+}
+
+html.dark .drop-item:hover {
+    background: #22223a;
+    color: #a5b4fc;
+}
+
+html.dark .drop-divider {
+    background: #2a2a3e;
+}
+
+html.dark .drop-logout {
+    color: #f87171;
+}
+
+html.dark .drop-logout:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #f87171;
+}
+
+html.dark .topbar-btn-login {
+    color: #8a8aa0;
+    border-color: #2a2a3e;
+}
+
+html.dark .topbar-btn-login:hover {
+    border-color: #6366f1;
+    color: #a5b4fc;
+    background: rgba(99, 102, 241, 0.1);
+}
+
+html.dark .topbar-btn-register {
+    background: #6366f1;
+    border-color: #6366f1;
+}
+
+html.dark .topbar-btn-register:hover {
+    background: #4f46e5;
+    border-color: #4f46e5;
+}
+
+/* ========== 顶部栏 ========== */
 .topbar {
     position: fixed;
     top: 0;
@@ -278,7 +387,7 @@ onUnmounted(() => {
     right: 0;
     min-width: 160px;
     background: #fff;
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     overflow: hidden;

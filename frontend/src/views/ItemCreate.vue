@@ -343,6 +343,133 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ========== 暗黑模式 ========== */
+html.dark .create-page {
+    background: transparent;
+}
+
+html.dark .create-card {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+}
+
+html.dark .create-title {
+    color: #e0e0f0;
+}
+
+html.dark .create-desc {
+    color: #6a6a8a;
+}
+
+html.dark .section-label {
+    color: #c8c8d8;
+}
+
+html.dark .type-option {
+    border-color: #2a2a3e;
+    color: #8a8aa0;
+}
+
+html.dark .type-option:hover {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.08);
+}
+
+html.dark .type-option.active {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+}
+
+html.dark .type-desc {
+    color: #6a6a8a;
+}
+
+html.dark .type-option.active .type-desc {
+    color: #818cf8;
+}
+
+html.dark .form-input {
+    background: #22223a;
+    border-color: #2a2a3e;
+    color: #c8c8d8;
+}
+
+html.dark .form-input:focus {
+    border-color: #6366f1;
+    background: #2a2a4e;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+html.dark .form-input::placeholder {
+    color: #6a6a8a;
+}
+
+html.dark .form-textarea {
+    background: #22223a;
+    border-color: #2a2a3e;
+    color: #c8c8d8;
+}
+
+html.dark .form-textarea:focus {
+    border-color: #6366f1;
+    background: #2a2a4e;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+html.dark .form-textarea::placeholder {
+    color: #6a6a8a;
+}
+
+html.dark .char-count {
+    color: #6a6a8a;
+}
+
+html.dark .category-select :deep(.el-input__wrapper) {
+    background: #22223a;
+    border-color: #2a2a3e;
+}
+
+html.dark .category-select :deep(.el-input__wrapper.is-focus) {
+    border-color: #6366f1;
+    background: #2a2a4e;
+}
+
+html.dark .upload-preview {
+    border-color: #2a2a3e;
+}
+
+html.dark .upload-btn {
+    border-color: #3a3a5e;
+    color: #6a6a8a;
+}
+
+html.dark .upload-btn:hover {
+    border-color: #6366f1;
+    color: #a5b4fc;
+    background: rgba(99, 102, 241, 0.1);
+}
+
+html.dark .upload-tip {
+    color: #6a6a8a;
+}
+
+html.dark .form-actions {
+    border-top-color: #2a2a3e;
+}
+
+html.dark .btn-cancel {
+    border-color: #2a2a3e;
+    color: #8a8aa0;
+    background: #1a1a2e;
+}
+
+html.dark .btn-cancel:hover {
+    border-color: #3a3a5e;
+    background: #22223a;
+}
+
+/* ========== 创建页面 ========== */
 .create-page {
     min-height: 100vh;
     background: #f0f2f5;
@@ -356,7 +483,7 @@ onMounted(() => {
 
 .create-card {
     background: #fff;
-    border-radius: 16px;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
     overflow: hidden;
 }
@@ -409,7 +536,7 @@ onMounted(() => {
     gap: 12px;
     padding: 16px;
     border: 2px solid #e2e8f0;
-    border-radius: 12px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.25s;
     color: #4a5568;
@@ -451,7 +578,7 @@ onMounted(() => {
     width: 100%;
     padding: 12px 16px;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 14px;
     color: #4a4a6a;
     background: #fafaff;
@@ -474,7 +601,7 @@ onMounted(() => {
     width: 100%;
     padding: 12px 16px;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 14px;
     color: #4a4a6a;
     background: #fafaff;
@@ -509,7 +636,7 @@ onMounted(() => {
 .category-select :deep(.el-input__wrapper) {
     background: #fafaff;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    border-radius: 8px;
     box-shadow: none;
     padding: 4px 12px;
 }
@@ -536,7 +663,7 @@ onMounted(() => {
 .upload-preview {
     position: relative;
     aspect-ratio: 1;
-    border-radius: 10px;
+    border-radius: 8px;
     overflow: hidden;
     border: 1px solid #e2e8f0;
 }
@@ -571,7 +698,7 @@ onMounted(() => {
 .upload-btn {
     aspect-ratio: 1;
     border: 2px dashed #c0c4cc;
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -610,7 +737,7 @@ onMounted(() => {
 .btn-cancel {
     padding: 12px 24px;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
     color: #4a5568;
@@ -629,7 +756,7 @@ onMounted(() => {
     background: linear-gradient(135deg, #4f46e5, #6366f1);
     color: #fff;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
