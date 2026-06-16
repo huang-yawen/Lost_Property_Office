@@ -12,18 +12,24 @@ const routes = [
         path: '/login',
         name: 'Login',
         component: () => import('../views/Login.vue'),
-        meta: { title: '登录' }
+        meta: { title: '登录', hideLayout: true }
     },
     {
         path: '/register',
         name: 'Register',
         component: () => import('../views/Register.vue'),
-        meta: { title: '注册' }
+        meta: { title: '注册', hideLayout: true }
     },
     {
         path: '/create',
-        name: 'ItemCreate',
-        component: () => import('../views/ItemCreate.vue'),
+        name: 'PublishSelect',
+        component: () => import('../views/PublishSelect.vue'),
+        meta: { title: '发布信息', requiresAuth: true }
+    },
+    {
+        path: '/create/form',
+        name: 'PublishForm',
+        component: () => import('../views/PublishForm.vue'),
         meta: { title: '发布信息', requiresAuth: true }
     },
     {
@@ -35,7 +41,7 @@ const routes = [
     {
         path: '/edit/:id',
         name: 'ItemEdit',
-        component: () => import('../views/ItemCreate.vue'),
+        component: () => import('../views/PublishForm.vue'),
         meta: { title: '编辑信息', requiresAuth: true }
     },
     {

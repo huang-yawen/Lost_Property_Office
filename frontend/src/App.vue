@@ -1,12 +1,31 @@
 <template>
-    <div id="app">
-        <NavBar />
+    <!-- 全屏页面（登录/注册等），不包含侧边栏和顶栏 -->
+    <template v-if="route.meta.hideLayout">
         <router-view />
-    </div>
+    </template>
+
+    <!-- 标准布局页面 -->
+    <template v-else>
+        <div class="app-layout">
+            <NavBar :collapsed="sidebarCollapsed" />
+            <div class="app-right" :class="{ collapsed: sidebarCollapsed }">
+                <TopBar :collapsed="sidebarCollapsed" @toggle-sidebar="sidebarCollapsed = !sidebarCollapsed" />
+                <main class="app-main" :class="{ 'app-main-chat': route.name === 'Messages' }">
+                    <router-view />
+                </main>
+            </div>
+        </div>
+    </template>
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { useRoute } from 'vue-router'
 import NavBar from './components/NavBar.vue'
+import TopBar from './components/TopBar.vue'
+
+const route = useRoute()
+const sidebarCollapsed = ref(false)
 </script>
 
 <style>
@@ -18,15 +37,16 @@ import NavBar from './components/NavBar.vue'
 }
 
 html {
-    scroll-behavior: smooth;
+    overflow: hidden;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans SC', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    color: #2c3e50;
-    background: #f0f2f5;
+    color: #4a4a6a;
+    background: #f5f5ff;
+    overflow: hidden;
 }
 
 a {
@@ -86,13 +106,13 @@ a {
 }
 
 .el-button--primary {
-    background: #1a3a5c !important;
-    border-color: #1a3a5c !important;
+    background: #4f46e5 !important;
+    border-color: #4f46e5 !important;
 }
 
 .el-button--primary:hover {
-    background: #2c5f8a !important;
-    border-color: #2c5f8a !important;
+    background: #4338ca !important;
+    border-color: #4338ca !important;
 }
 
 .el-dialog {
@@ -105,6 +125,48 @@ a {
 }
 
 .el-pager li.is-active {
-    background: #1a3a5c !important;
+    background: #4f46e5 !important;
+}
+</style>
+
+<style scoped>
+.app-layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-right {
+    flex: 1;
+    margin-left: 240px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    transition: margin-left 0.3s ease;
+}
+
+.app-right.collapsed {
+    margin-left: 64px;
+}
+
+.app-main {
+    flex: 1;
+    margin: 16px;
+    margin-top: 72px;
+    background: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    padding: 24px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.app-main-chat {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 </style>

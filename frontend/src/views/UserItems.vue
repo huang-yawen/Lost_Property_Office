@@ -267,7 +267,7 @@ onMounted(() => {
 .page-title {
     font-size: 22px;
     font-weight: 700;
-    color: #2c3e50;
+    color: #4a4a6a;
     margin-bottom: 8px;
 }
 
@@ -297,13 +297,13 @@ onMounted(() => {
 }
 
 .filter-tab:hover {
-    border-color: #7aa3d0;
-    color: #1a3a5c;
+    border-color: #a5b4fc;
+    color: #4f46e5;
 }
 
 .filter-tab.active {
-    background: #1a3a5c;
-    border-color: #1a3a5c;
+    background: #4f46e5;
+    border-color: #4f46e5;
     color: #fff;
 }
 
@@ -387,7 +387,7 @@ onMounted(() => {
 .btn-create {
     display: inline-block;
     padding: 10px 24px;
-    background: linear-gradient(135deg, #1a3a5c, #2c5f8a);
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
     color: #fff;
     border-radius: 8px;
     font-size: 14px;
@@ -397,8 +397,8 @@ onMounted(() => {
 }
 
 .btn-create:hover {
-    background: linear-gradient(135deg, #2c5f8a, #4a7fb5);
-    box-shadow: 0 4px 12px rgba(26, 58, 92, 0.3);
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
 /* 物品列表 */
@@ -474,7 +474,7 @@ onMounted(() => {
 .item-title {
     font-size: 16px;
     font-weight: 600;
-    color: #2c3e50;
+    color: #4a4a6a;
     cursor: pointer;
     transition: color 0.2s;
     margin: 0;
@@ -485,7 +485,7 @@ onMounted(() => {
 }
 
 .item-title:hover {
-    color: #1a3a5c;
+    color: #4f46e5;
 }
 
 .item-status {
@@ -532,8 +532,8 @@ onMounted(() => {
 
 .meta-category {
     padding: 2px 8px;
-    background: #d4e4f3;
-    color: #1a3a5c;
+    background: #eef2ff;
+    color: #4f46e5;
     border-radius: 4px;
     font-size: 11px;
     font-weight: 500;
@@ -565,9 +565,9 @@ onMounted(() => {
 }
 
 .action-edit:hover {
-    border-color: #1a3a5c;
-    color: #1a3a5c;
-    background: #f0f5fa;
+    border-color: #4f46e5;
+    color: #4f46e5;
+    background: #f0f0ff;
 }
 
 .action-resolve:hover {

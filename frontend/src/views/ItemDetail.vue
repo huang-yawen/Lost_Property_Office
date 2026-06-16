@@ -27,6 +27,12 @@
 
             <!-- 详情内容 -->
             <template v-else-if="item">
+                <button class="detail-close-btn" @click="goBack" title="关闭">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
                 <div class="detail-card">
                     <!-- 图片画廊 -->
                     <div class="gallery-section">
@@ -302,6 +308,10 @@ async function handleSendMessage() {
     }
 }
 
+function goBack() {
+    router.back()
+}
+
 onMounted(() => {
     fetchCategories()
     fetchDetail()
@@ -387,7 +397,7 @@ onMounted(() => {
 
 .btn-back {
     padding: 10px 24px;
-    background: #1a3a5c;
+    background: #4f46e5;
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -398,7 +408,33 @@ onMounted(() => {
 }
 
 .btn-back:hover {
-    background: #2c5f8a;
+    background: #4338ca;
+}
+
+/* 关闭按钮 */
+.detail-close-btn {
+    position: fixed;
+    top: 88px;
+    right: 24px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.detail-close-btn:hover {
+    background: #f5f5f5;
+    color: #333;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 /* 详情卡片 */
@@ -480,11 +516,11 @@ onMounted(() => {
 }
 
 .thumb-item:hover {
-    border-color: #7aa3d0;
+    border-color: #a5b4fc;
 }
 
 .thumb-item.active {
-    border-color: #1a3a5c;
+    border-color: #4f46e5;
 }
 
 .thumb-item img {
@@ -507,7 +543,7 @@ onMounted(() => {
 .info-title {
     font-size: 22px;
     font-weight: 700;
-    color: #2c3e50;
+    color: #4a4a6a;
     margin-bottom: 12px;
     line-height: 1.4;
 }
@@ -520,8 +556,8 @@ onMounted(() => {
 
 .meta-category {
     padding: 4px 10px;
-    background: #d4e4f3;
-    color: #1a3a5c;
+    background: #eef2ff;
+    color: #4f46e5;
     border-radius: 6px;
     font-size: 12px;
     font-weight: 500;
@@ -543,7 +579,7 @@ onMounted(() => {
 .info-label {
     font-size: 14px;
     font-weight: 600;
-    color: #2c3e50;
+    color: #4a4a6a;
     margin-bottom: 8px;
 }
 
@@ -571,7 +607,7 @@ onMounted(() => {
 }
 
 .detail-item svg {
-    color: #1a3a5c;
+    color: #4f46e5;
     flex-shrink: 0;
 }
 
@@ -605,9 +641,9 @@ onMounted(() => {
 }
 
 .action-edit:hover {
-    border-color: #1a3a5c;
-    color: #1a3a5c;
-    background: #f0f5fa;
+    border-color: #4f46e5;
+    color: #4f46e5;
+    background: #f0f0ff;
 }
 
 .action-resolve:hover {
@@ -623,14 +659,14 @@ onMounted(() => {
 }
 
 .action-message {
-    background: linear-gradient(135deg, #1a3a5c, #2c5f8a);
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
     color: #fff;
     border: none;
 }
 
 .action-message:hover {
-    background: linear-gradient(135deg, #2c5f8a, #4a7fb5);
-    box-shadow: 0 4px 12px rgba(26, 58, 92, 0.3);
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
 /* 留言对话框 */
@@ -644,7 +680,7 @@ onMounted(() => {
     border: 1px solid #e2e8f0;
     border-radius: 10px;
     font-size: 14px;
-    color: #2c3e50;
+    color: #4a4a6a;
     outline: none;
     resize: none;
     font-family: inherit;
@@ -653,7 +689,7 @@ onMounted(() => {
 }
 
 .message-textarea:focus {
-    border-color: #1a3a5c;
+    border-color: #4f46e5;
 }
 
 .message-count {

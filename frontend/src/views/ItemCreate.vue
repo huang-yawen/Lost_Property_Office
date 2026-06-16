@@ -368,7 +368,7 @@ onMounted(() => {
 .create-title {
     font-size: 22px;
     font-weight: 700;
-    color: #2c3e50;
+    color: #4a4a6a;
     margin-bottom: 8px;
 }
 
@@ -393,7 +393,7 @@ onMounted(() => {
 .section-label {
     font-size: 14px;
     font-weight: 600;
-    color: #2c3e50;
+    color: #4a4a6a;
 }
 
 /* 类型选择器 */
@@ -421,9 +421,9 @@ onMounted(() => {
 }
 
 .type-option.active {
-    border-color: #1a3a5c;
-    background: #f0f5fa;
-    color: #1a3a5c;
+    border-color: #4f46e5;
+    background: #f0f0ff;
+    color: #4f46e5;
 }
 
 .type-info {
@@ -443,7 +443,7 @@ onMounted(() => {
 }
 
 .type-option.active .type-desc {
-    color: #4a7fb5;
+    color: #818cf8;
 }
 
 /* 表单输入 */
@@ -453,17 +453,17 @@ onMounted(() => {
     border: 1px solid #e2e8f0;
     border-radius: 10px;
     font-size: 14px;
-    color: #2c3e50;
-    background: #f7fafc;
+    color: #4a4a6a;
+    background: #fafaff;
     transition: all 0.25s;
     outline: none;
     box-sizing: border-box;
 }
 
 .form-input:focus {
-    border-color: #1a3a5c;
+    border-color: #4f46e5;
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(26, 58, 92, 0.1);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .form-input::placeholder {
@@ -476,8 +476,8 @@ onMounted(() => {
     border: 1px solid #e2e8f0;
     border-radius: 10px;
     font-size: 14px;
-    color: #2c3e50;
-    background: #f7fafc;
+    color: #4a4a6a;
+    background: #fafaff;
     transition: all 0.25s;
     outline: none;
     resize: vertical;
@@ -487,9 +487,9 @@ onMounted(() => {
 }
 
 .form-textarea:focus {
-    border-color: #1a3a5c;
+    border-color: #4f46e5;
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(26, 58, 92, 0.1);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .form-textarea::placeholder {
@@ -507,7 +507,7 @@ onMounted(() => {
 }
 
 .category-select :deep(.el-input__wrapper) {
-    background: #f7fafc;
+    background: #fafaff;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
     box-shadow: none;
@@ -515,9 +515,9 @@ onMounted(() => {
 }
 
 .category-select :deep(.el-input__wrapper.is-focus) {
-    border-color: #1a3a5c;
+    border-color: #4f46e5;
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(26, 58, 92, 0.1);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 /* 图片上传 */
@@ -583,9 +583,9 @@ onMounted(() => {
 }
 
 .upload-btn:hover {
-    border-color: #1a3a5c;
-    color: #1a3a5c;
-    background: #f0f5fa;
+    border-color: #4f46e5;
+    color: #4f46e5;
+    background: #f0f0ff;
 }
 
 .upload-btn span {
@@ -626,7 +626,7 @@ onMounted(() => {
 
 .btn-submit {
     padding: 12px 32px;
-    background: linear-gradient(135deg, #1a3a5c, #2c5f8a);
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -637,9 +637,9 @@ onMounted(() => {
 }
 
 .btn-submit:hover:not(:disabled) {
-    background: linear-gradient(135deg, #2c5f8a, #4a7fb5);
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(26, 58, 92, 0.3);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
 .btn-submit:disabled {

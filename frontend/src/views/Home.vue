@@ -25,63 +25,95 @@
                 </div>
             </div>
 
-            <!-- 分类标签 -->
-            <div class="categories-section">
-                <div class="categories-scroll">
-                    <div
-                        class="category-tab"
-                        :class="{ active: activeCategory === 0 }"
-                        @click="switchCategory(0)"
-                    >
-                        <div class="category-icon category-all">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7"/>
-                                <rect x="14" y="3" width="7" height="7"/>
-                                <rect x="14" y="14" width="7" height="7"/>
-                                <rect x="3" y="14" width="7" height="7"/>
-                            </svg>
-                        </div>
-                        <span>全部</span>
+            <!-- 筛选区域：三行布局 -->
+            <div class="filter-area">
+                <!-- 第一行：类型筛选（招领 / 失物） -->
+                <div class="filter-row">
+                    <div class="filter-label">类型</div>
+                    <div class="filter-options">
+                        <button
+                            class="filter-btn"
+                            :class="{ active: activeType === 0 }"
+                            @click="switchType(0)"
+                        >全部</button>
+                        <button
+                            class="filter-btn type-found"
+                            :class="{ active: activeType === 1 }"
+                            @click="switchType(1)"
+                        >招领</button>
+                        <button
+                            class="filter-btn type-lost"
+                            :class="{ active: activeType === 2 }"
+                            @click="switchType(2)"
+                        >寻物</button>
                     </div>
-                    <div
-                        v-for="cat in categories"
-                        :key="cat.id"
-                        class="category-tab"
-                        :class="{ active: activeCategory === cat.id }"
-                        @click="switchCategory(cat.id)"
-                    >
-                        <div class="category-icon" :style="{ background: cat.color || '#d4e4f3' }">
-                            <span class="category-emoji">{{ cat.icon || '📦' }}</span>
-                        </div>
-                        <span>{{ cat.name }}</span>
+                </div>
+
+                <!-- 第二行：分类筛选（证件、生活用品等） -->
+                <div class="filter-row">
+                    <div class="filter-label">分类</div>
+                    <div class="filter-options">
+                        <span
+                            class="category-chip"
+                            :class="{ active: activeCategory === 0 }"
+                            @click="switchCategory(0)"
+                        >全部</span>
+                        <span
+                            v-for="cat in categories"
+                            :key="cat.id"
+                            class="category-chip"
+                            :class="{ active: activeCategory === cat.id }"
+                            @click="switchCategory(cat.id)"
+                        >{{ cat.name }}</span>
+                    </div>
+                </div>
+
+                <!-- 第三行：时间筛选 + 排序 -->
+                <div class="filter-row">
+                    <div class="filter-label">时间</div>
+                    <div class="filter-options">
+                        <button
+                            class="filter-btn"
+                            :class="{ active: timeRange === 0 }"
+                            @click="setTimeRange(0)"
+                        >全部</button>
+                        <button
+                            class="filter-btn"
+                            :class="{ active: timeRange === 1 }"
+                            @click="setTimeRange(1)"
+                        >今天</button>
+                        <button
+                            class="filter-btn"
+                            :class="{ active: timeRange === 3 }"
+                            @click="setTimeRange(3)"
+                        >近三天</button>
+                        <button
+                            class="filter-btn"
+                            :class="{ active: timeRange === 7 }"
+                            @click="setTimeRange(7)"
+                        >近一周</button>
+                        <button
+                            class="filter-btn"
+                            :class="{ active: timeRange === 30 }"
+                            @click="setTimeRange(30)"
+                        >近一月</button>
+                    </div>
+                    <div class="filter-right">
+                        <button class="sort-btn" @click="toggleSort">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="21" y1="6" x2="9" y2="6"/>
+                                <line x1="21" y1="12" x2="5" y2="12"/>
+                                <line x1="21" y1="18" x2="11" y2="18"/>
+                                <polyline :points="sortOrder === 'desc' ? '3 10 7 6 11 10' : '3 14 7 18 11 14'"/>
+                            </svg>
+                            {{ sortOrder === 'desc' ? '最新优先' : '最早优先' }}
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- 类型筛选 -->
-            <div class="type-filter">
-                <div
-                    class="type-btn"
-                    :class="{ active: activeType === 0 }"
-                    @click="switchType(0)"
-                >
-                    全部
-                </div>
-                <div
-                    class="type-btn type-found"
-                    :class="{ active: activeType === 1 }"
-                    @click="switchType(1)"
-                >
-                    招领
-                </div>
-                <div
-                    class="type-btn type-lost"
-                    :class="{ active: activeType === 2 }"
-                    @click="switchType(2)"
-                >
-                    寻物
-                </div>
-            </div>
+            <!-- 分隔线 -->
+            <div class="content-divider"></div>
 
             <!-- 加载状态 -->
             <div v-if="loading" class="loading-grid">
@@ -175,6 +207,8 @@ const pageSize = 12
 const activeCategory = ref(0)
 const activeType = ref(0)
 const searchKeyword = ref('')
+const timeRange = ref(0)
+const sortOrder = ref('desc')
 
 const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNFNEU3RUQiLz48Y2lyY2xlIGN4PSIxNTAiIGN5PSI4MCIgcj0iMjgiIGZpbGw9IiNDMEM0Q0MiLz48cGF0aCBkPSJNNzUgMTUwTDE1MCA5MEwyMjUgMTUwSDc1TDE1MCA5MEwyMjUgMTUwSDc1WiIgZmlsbD0iI0MwQzRDQyIvPjwvc3ZnPg=='
 
@@ -221,11 +255,18 @@ async function fetchItems() {
     try {
         const params = {
             page: currentPage.value,
-            size: pageSize
+            size: pageSize,
+            sort: sortOrder.value
         }
         if (activeCategory.value > 0) params.categoryId = activeCategory.value
         if (activeType.value > 0) params.type = activeType.value
         if (searchKeyword.value.trim()) params.keyword = searchKeyword.value.trim()
+        if (timeRange.value > 0) {
+            const now = new Date()
+            const past = new Date(now.getTime() - timeRange.value * 24 * 60 * 60 * 1000)
+            params.startTime = past.toISOString()
+            params.endTime = now.toISOString()
+        }
 
         const res = await itemApi.getList(params)
         items.value = res.data?.records || []
@@ -245,6 +286,18 @@ function switchCategory(id) {
 
 function switchType(type) {
     activeType.value = type
+    currentPage.value = 1
+    fetchItems()
+}
+
+function setTimeRange(days) {
+    timeRange.value = days
+    currentPage.value = 1
+    fetchItems()
+}
+
+function toggleSort() {
+    sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
     currentPage.value = 1
     fetchItems()
 }
@@ -274,32 +327,34 @@ onMounted(() => {
 
 <style scoped>
 .home-page {
-    min-height: 100vh;
-    background: #f0f2f5;
+    min-height: 100%;
 }
 
 /* 主内容 */
 .main-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 24px 24px 60px;
 }
-
-/* Banner 区域 - 由 NavBar 组件提供 */
 
 /* 搜索栏 */
 .search-section {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .search-box {
     display: flex;
     align-items: center;
-    background: #fff;
-    border-radius: 14px;
+    background: #fafaff;
+    border-radius: 8px;
     padding: 4px 4px 4px 16px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e2e8f0;
+    border: 1px solid #f0f0f0;
+    transition: all 0.25s;
+}
+
+.search-box:focus-within {
+    border-color: #4f46e5;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
 }
 
 .search-icon {
@@ -313,7 +368,7 @@ onMounted(() => {
     outline: none;
     padding: 12px 12px;
     font-size: 15px;
-    color: #2c3e50;
+    color: #4a4a6a;
     background: transparent;
 }
 
@@ -338,10 +393,10 @@ onMounted(() => {
 
 .search-btn {
     padding: 10px 24px;
-    background: #1a3a5c;
+    background: #4f46e5;
     color: #fff;
     border: none;
-    border-radius: 10px;
+    border-radius: 6px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -349,125 +404,135 @@ onMounted(() => {
 }
 
 .search-btn:hover {
-    background: #2c5f8a;
+    background: #4338ca;
 }
 
-/* 分类标签 */
-.categories-section {
-    margin-bottom: 20px;
-}
-
-.categories-scroll {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    -webkit-overflow-scrolling: touch;
-}
-
-.categories-scroll::-webkit-scrollbar {
-    height: 4px;
-}
-
-.categories-scroll::-webkit-scrollbar-thumb {
-    background: #c0c4cc;
-    border-radius: 2px;
-}
-
-.category-tab {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
+/* ===== 筛选区域：三行简约布局 ===== */
+.filter-area {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
     padding: 16px 20px;
-    background: #fff;
-    border-radius: 14px;
-    border: 1px solid #e2e8f0;
-    cursor: pointer;
-    transition: all 0.25s;
-    min-width: 80px;
+    background: #fafaff;
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+}
+
+.filter-row + .filter-row {
+    border-top: 1px solid #eef1f5;
+    margin-top: 6px;
+    padding-top: 12px;
+}
+
+.filter-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a4a6a;
+    min-width: 36px;
     flex-shrink: 0;
 }
 
-.category-tab:hover {
-    border-color: #7aa3d0;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+.filter-options {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1;
 }
 
-.category-tab.active {
-    border-color: #1a3a5c;
-    background: #f0f5fa;
-}
-
-.category-tab span {
-    font-size: 12px;
+.filter-btn {
+    padding: 5px 14px;
+    border-radius: 6px;
+    font-size: 13px;
     font-weight: 500;
-    color: #4a5568;
+    color: #4a4a6a;
+    background: #fff;
+    border: 1px solid #e0e0f0;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1.4;
+}
+
+.filter-btn:hover {
+    border-color: #a5b4fc;
+    color: #4f46e5;
+}
+
+.filter-btn.active {
+    background: #4f46e5;
+    color: #fff;
+    border-color: #4f46e5;
+}
+
+.filter-btn.type-found.active {
+    background: #059669;
+    border-color: #059669;
+}
+
+.filter-btn.type-lost.active {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+/* 分类标签（chip 样式） */
+.category-chip {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #4a4a6a;
+    background: #f0f0ff;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1.4;
+    user-select: none;
+}
+
+.category-chip:hover {
+    background: #e0e7ff;
+    color: #4f46e5;
+}
+
+.category-chip.active {
+    background: #4f46e5;
+    color: #fff;
+}
+
+/* 右侧排序 */
+.filter-right {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.sort-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #4a4a6a;
+    background: #fff;
+    border: 1px solid #e0e0f0;
+    cursor: pointer;
+    transition: all 0.2s;
     white-space: nowrap;
 }
 
-.category-tab.active span {
-    color: #1a3a5c;
-    font-weight: 600;
+.sort-btn:hover {
+    border-color: #a5b4fc;
+    color: #4f46e5;
+    background: #f5f5ff;
 }
 
-.category-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.category-all {
-    background: linear-gradient(135deg, #d4e4f3, #a8c4e3);
-    color: #1a3a5c;
-}
-
-.category-emoji {
-    font-size: 20px;
-}
-
-/* 类型筛选 */
-.type-filter {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.type-btn {
-    padding: 8px 20px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #4a5568;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    cursor: pointer;
-    transition: all 0.25s;
-}
-
-.type-btn:hover {
-    border-color: #7aa3d0;
-    color: #1a3a5c;
-}
-
-.type-btn.active {
-    background: #1a3a5c;
-    color: #fff;
-    border-color: #1a3a5c;
-}
-
-.type-found.active {
-    background: #1a8a5c;
-    border-color: #1a8a5c;
-}
-
-.type-lost.active {
-    background: #c0392b;
-    border-color: #c0392b;
+/* 分隔线 */
+.content-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 20px 0 24px;
 }
 
 /* 骨架屏 */
@@ -478,15 +543,15 @@ onMounted(() => {
 }
 
 .skeleton-card {
-    background: #fff;
-    border-radius: 14px;
+    background: #f7fafc;
+    border-radius: 8px;
     overflow: hidden;
     border: 1px solid #e2e8f0;
 }
 
 .skeleton-image {
     height: 180px;
-    background: linear-gradient(90deg, #f0f2f5 25%, #e2e8f0 50%, #f0f2f5 75%);
+    background: linear-gradient(90deg, #eef2f7 25%, #e2e8f0 50%, #eef2f7 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
 }
@@ -500,7 +565,7 @@ onMounted(() => {
 
 .skeleton-line {
     height: 14px;
-    background: linear-gradient(90deg, #f0f2f5 25%, #e2e8f0 50%, #f0f2f5 75%);
+    background: linear-gradient(90deg, #eef2f7 25%, #e2e8f0 50%, #eef2f7 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: 4px;
@@ -518,10 +583,7 @@ onMounted(() => {
 /* 空状态 */
 .empty-section {
     text-align: center;
-    padding: 80px 0;
-    background: #fff;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
+    padding: 60px 0 40px;
 }
 
 .empty-section svg {
@@ -541,8 +603,8 @@ onMounted(() => {
 }
 
 .item-card {
-    background: #fff;
-    border-radius: 14px;
+    background: #f7fafc;
+    border-radius: 8px;
     overflow: hidden;
     border: 1px solid #e2e8f0;
     cursor: pointer;
@@ -551,7 +613,7 @@ onMounted(() => {
 
 .item-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     border-color: transparent;
 }
 
@@ -559,7 +621,7 @@ onMounted(() => {
     position: relative;
     height: 180px;
     overflow: hidden;
-    background: #f0f2f5;
+    background: #eef2f7;
 }
 
 .item-image img {
@@ -611,7 +673,7 @@ onMounted(() => {
 .item-title {
     font-size: 15px;
     font-weight: 600;
-    color: #2c3e50;
+    color: #4a4a6a;
     margin-bottom: 8px;
     white-space: nowrap;
     overflow: hidden;
@@ -639,8 +701,8 @@ onMounted(() => {
 
 .meta-category {
     padding: 2px 8px;
-    background: #d4e4f3;
-    color: #1a3a5c;
+    background: #eef2ff;
+    color: #4f46e5;
     border-radius: 4px;
     font-size: 11px;
     font-weight: 500;
@@ -659,7 +721,7 @@ onMounted(() => {
     align-items: center;
     justify-content: space-between;
     padding-top: 10px;
-    border-top: 1px solid #f0f2f5;
+    border-top: 1px solid #e2e8f0;
 }
 
 .item-time {
@@ -676,20 +738,22 @@ onMounted(() => {
 .pagination-section {
     display: flex;
     justify-content: center;
-    margin-top: 32px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
 }
 
 .pagination-section :deep(.el-pager li) {
-    border-radius: 8px;
+    border-radius: 4px;
     margin: 0 2px;
 }
 
 .pagination-section :deep(.el-pager li.is-active) {
-    background: #1a3a5c;
+    background: #4f46e5;
 }
 
 .pagination-section :deep(.btn-prev),
 .pagination-section :deep(.btn-next) {
-    border-radius: 8px;
+    border-radius: 4px;
 }
 </style>

@@ -171,7 +171,7 @@ onMounted(() => {
     width: 72px;
     height: 72px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #1a3a5c, #4a7fb5);
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -187,7 +187,7 @@ onMounted(() => {
 .profile-name {
     font-size: 20px;
     font-weight: 700;
-    color: #2c3e50;
+    color: #4a4a6a;
     margin-bottom: 4px;
 }
 
@@ -217,7 +217,7 @@ onMounted(() => {
 .stat-value {
     font-size: 22px;
     font-weight: 700;
-    color: #1a3a5c;
+    color: #4f46e5;
 }
 
 .stat-label {
@@ -251,7 +251,7 @@ onMounted(() => {
 }
 
 .nav-item svg:first-child {
-    color: #1a3a5c;
+    color: #4f46e5;
     flex-shrink: 0;
 }
 
@@ -264,7 +264,7 @@ onMounted(() => {
     display: block;
     font-size: 15px;
     font-weight: 600;
-    color: #2c3e50;
+    color: #4a4a6a;
     margin-bottom: 2px;
 }
 

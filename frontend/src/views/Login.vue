@@ -1,16 +1,16 @@
 <template>
     <div class="auth-page">
+        <router-link to="/" class="auth-logo">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
+                <path d="M12 18V6"/>
+            </svg>
+            <span>校园失物招领</span>
+        </router-link>
         <div class="auth-container">
             <div class="auth-card">
                 <div class="auth-header">
-                    <router-link to="/" class="auth-logo">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
-                            <path d="M12 18V6"/>
-                        </svg>
-                        <span>校园失物招领</span>
-                    </router-link>
                     <h1 class="auth-title">欢迎回来</h1>
                     <p class="auth-desc">登录您的账号以继续</p>
                 </div>
@@ -130,12 +130,13 @@ async function handleLogin() {
 
 <style scoped>
 .auth-page {
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #1a3a5c 0%, #2c5f8a 50%, #4a7fb5 100%);
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%);
     padding: 24px;
+    overflow: hidden;
 }
 
 .auth-container {
@@ -145,7 +146,7 @@ async function handleLogin() {
 
 .auth-card {
     background: #fff;
-    border-radius: 20px;
+    border-radius: 8px;
     padding: 40px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
@@ -156,20 +157,35 @@ async function handleLogin() {
 }
 
 .auth-logo {
+    position: fixed;
+    top: 32px;
+    left: 32px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    color: #1a3a5c;
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 24px;
+    gap: 12px;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 800;
     text-decoration: none;
+    letter-spacing: 2px;
+    z-index: 10;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-style: italic;
+    transition: opacity 0.3s;
+}
+
+.auth-logo:hover {
+    opacity: 0.85;
+}
+
+.auth-logo svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .auth-title {
     font-size: 24px;
     font-weight: 700;
-    color: #2c3e50;
+    color: #4a4a6a;
     margin-bottom: 8px;
 }
 
@@ -193,23 +209,23 @@ async function handleLogin() {
 .form-label {
     font-size: 13px;
     font-weight: 600;
-    color: #2c3e50;
+    color: #4a4a6a;
 }
 
 .input-wrapper {
     display: flex;
     align-items: center;
-    background: #f7fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    background: #fafaff;
+    border: 1px solid #f0f0f0;
+    border-radius: 6px;
     padding: 0 14px;
     transition: all 0.25s;
 }
 
 .input-wrapper:focus-within {
-    border-color: #1a3a5c;
+    border-color: #4f46e5;
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(26, 58, 92, 0.1);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .input-icon {
@@ -223,7 +239,7 @@ async function handleLogin() {
     outline: none;
     padding: 12px 10px;
     font-size: 14px;
-    color: #2c3e50;
+    color: #4a4a6a;
     background: transparent;
 }
 
@@ -249,10 +265,10 @@ async function handleLogin() {
 .btn-submit {
     width: 100%;
     padding: 14px;
-    background: linear-gradient(135deg, #1a3a5c, #2c5f8a);
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
     color: #fff;
     border: none;
-    border-radius: 10px;
+    border-radius: 6px;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
@@ -261,9 +277,9 @@ async function handleLogin() {
 }
 
 .btn-submit:hover:not(:disabled) {
-    background: linear-gradient(135deg, #2c5f8a, #4a7fb5);
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(26, 58, 92, 0.3);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
 .btn-submit:disabled {
@@ -295,13 +311,13 @@ async function handleLogin() {
 }
 
 .auth-link {
-    color: #1a3a5c;
+    color: #4f46e5;
     font-weight: 600;
     margin-left: 4px;
     transition: color 0.2s;
 }
 
 .auth-link:hover {
-    color: #2c5f8a;
+    color: #4338ca;
 }
 </style>
