@@ -186,12 +186,46 @@
                 <!-- 分享海报 -->
                 <SharePoster :visible="showPoster" :item="item" @close="showPoster = false" />
             </template>
+
+            <!-- 智能匹配推荐 -->
+            <div v-if="item && matchItems.length > 0" class="match-section">
+                <div class="match-header">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    <span>智能匹配推荐</span>
+                </div>
+                <div class="match-list">
+                    <div
+                        v-for="m in matchItems"
+                        :key="m.id"
+                        class="match-card"
+                        @click="router.push(`/item/${m.id}`)"
+                    >
+                        <div class="match-card-img">
+                            <img v-if="getMatchImage(m.images)" :src="getMatchImage(m.images)" alt="" />
+                            <svg v-else viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#c0c4cc" stroke-width="1.5">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                        </div>
+                        <div class="match-card-info">
+                            <h4>{{ m.title }}</h4>
+                            <p>{{ m.description || '暂无描述' }}</p>
+                            <span class="match-type-badge" :class="m.type === 1 ? 'type-found' : 'type-lost'">
+                                {{ m.type === 1 ? '招领' : '寻物' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { itemApi, categoryApi, messageApi } from '../api'
@@ -211,6 +245,8 @@ const showMessageDialog = ref(false)
 const messageContent = ref('')
 const sendingMessage = ref(false)
 const showPoster = ref(false)
+const matchItems = ref([])
+const matchLoading = ref(false)
 
 const images = computed(() => {
     if (!item.value?.images) return []
@@ -252,6 +288,15 @@ function getCategoryName(id) {
     return cat ? cat.name : '其他'
 }
 
+function getMatchImage(images) {
+    try {
+        const arr = JSON.parse(images)
+        return arr[0] || ''
+    } catch {
+        return ''
+    }
+}
+
 async function fetchCategories() {
     try {
         const res = await categoryApi.getList()
@@ -272,6 +317,21 @@ async function fetchDetail() {
         error.value = '获取物品信息失败，请稍后重试'
     } finally {
         loading.value = false
+    }
+}
+
+async function fetchMatchItems() {
+    if (!item.value) return
+    matchLoading.value = true
+    try {
+        const res = await itemApi.smartMatch(item.value.id)
+        if (res.data && res.data.length > 0) {
+            matchItems.value = res.data
+        }
+    } catch (e) {
+        console.error('获取匹配推荐失败:', e)
+    } finally {
+        matchLoading.value = false
     }
 }
 
@@ -343,6 +403,13 @@ function goBack() {
 onMounted(() => {
     fetchCategories()
     fetchDetail()
+})
+
+// 在获取详情后加载匹配推荐
+watch(item, (val) => {
+    if (val) {
+        fetchMatchItems()
+    }
 })
 </script>
 
@@ -478,6 +545,36 @@ html.dark .message-textarea::placeholder {
 
 html.dark .message-count {
     color: #6a6a8a;
+}
+
+html.dark .match-section {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+}
+
+html.dark .match-header {
+    color: #e0e0f0;
+}
+
+html.dark .match-card {
+    border-color: #2a2a3e;
+}
+
+html.dark .match-card:hover {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.08);
+}
+
+html.dark .match-card-info h4 {
+    color: #c8c8d8;
+}
+
+html.dark .match-card-info p {
+    color: #6a6a8a;
+}
+
+html.dark .match-card-img {
+    background: #0f0f1a;
 }
 
 /* ========== 详情页 ========== */
@@ -888,6 +985,110 @@ html.dark .message-count {
     color: #a0aec0;
 }
 
+/* 智能匹配推荐 */
+.match-section {
+    margin-top: 24px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    padding: 20px 24px;
+}
+
+.match-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #4a4a6a;
+    margin-bottom: 16px;
+}
+
+.match-header svg {
+    color: #e74c3c;
+}
+
+.match-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.match-card {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.match-card:hover {
+    border-color: #4f46e5;
+    background: rgba(79, 70, 229, 0.04);
+}
+
+.match-card-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #f0f2f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.match-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.match-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.match-card-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a4a6a;
+    margin: 0 0 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.match-card-info p {
+    font-size: 12px;
+    color: #8a8aa0;
+    margin: 0 0 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.match-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.type-found {
+    background: rgba(46, 168, 110, 0.1);
+    color: #1a8a5c;
+}
+
+.type-lost {
+    background: rgba(231, 76, 60, 0.1);
+    color: #c0392b;
+}
+
 /* 响应式 */
 @media (max-width: 768px) {
     .detail-card {
@@ -900,6 +1101,10 @@ html.dark .message-count {
 
     .info-section {
         padding: 24px;
+    }
+
+    .match-list {
+        grid-template-columns: 1fr;
     }
 }
 </style>

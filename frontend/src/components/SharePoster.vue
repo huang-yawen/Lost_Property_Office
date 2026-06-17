@@ -74,6 +74,12 @@
                         </div>
                     </div>
 
+                    <!-- 二维码区域 -->
+                    <div class="poster-qr-area" v-if="qrCodeUrl">
+                        <img :src="qrCodeUrl" alt="扫码查看详情" class="poster-qr-img" />
+                        <span class="poster-qr-text">扫码查看详情</span>
+                    </div>
+
                     <!-- 底部 -->
                     <div class="poster-footer">
                         <div class="poster-footer-left">
@@ -115,7 +121,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
@@ -133,6 +139,7 @@ const emit = defineEmits(['close'])
 
 const posterRef = ref(null)
 const saving = ref(false)
+const qrCodeUrl = ref('')
 
 const firstImage = computed(() => {
     if (!props.item?.images) return ''
@@ -152,6 +159,31 @@ const timeStr = computed(() => {
     const d = String(date.getDate()).padStart(2, '0')
     return `${y}.${m}.${d}`
 })
+
+// 生成二维码
+watch(() => props.visible, async (val) => {
+    if (val && props.item?.id) {
+        await generateQRCode()
+    }
+})
+
+async function generateQRCode() {
+    try {
+        const QRCode = (await import('qrcode')).default
+        const url = `${window.location.origin}/#/item/${props.item.id}`
+        qrCodeUrl.value = await QRCode.toDataURL(url, {
+            width: 120,
+            height: 120,
+            margin: 1,
+            color: {
+                dark: '#4a4a6a',
+                light: '#ffffff'
+            }
+        })
+    } catch (error) {
+        console.error('生成二维码失败:', error)
+    }
+}
 
 function close() {
     emit('close')
@@ -233,7 +265,7 @@ async function handleSharePoster() {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 2000;
+    z-index: 3100;
     backdrop-filter: blur(4px);
 }
 
@@ -423,6 +455,35 @@ async function handleSharePoster() {
     border-radius: 6px;
     flex-shrink: 0;
     margin-left: 4px;
+}
+
+/* 二维码区域 */
+.poster-qr-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 16px 12px;
+    gap: 4px;
+}
+
+.poster-qr-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.poster-qr-text {
+    font-size: 10px;
+    color: #a0aec0;
+}
+
+html.dark .poster-qr-img {
+    border-color: #2a2a3e;
+}
+
+html.dark .poster-qr-text {
+    color: #6a6a8a;
 }
 
 /* 底部 */

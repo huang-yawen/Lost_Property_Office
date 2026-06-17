@@ -59,7 +59,19 @@
                 <span class="nav-label">我的发布</span>
             </router-link>
 
-            <router-link v-if="userStore.isLoggedIn" to="/dashboard" class="nav-item" :class="{ active: $route.path === '/dashboard' }">
+            <!-- 仪表盘（管理员显示"仪表盘"，未登录也显示"仪表盘"） -->
+            <router-link v-if="!userStore.isLoggedIn || isAdmin" to="/dashboard" class="nav-item" :class="{ active: $route.path === '/dashboard' }">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span class="nav-label">仪表盘</span>
+            </router-link>
+
+            <!-- 数据看板（普通用户登录后显示"数据看板"） -->
+            <router-link v-if="userStore.isLoggedIn && !isAdmin" to="/dashboard" class="nav-item" :class="{ active: $route.path === '/dashboard' }">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="3" width="7" height="7"/>
                     <rect x="14" y="3" width="7" height="7"/>
@@ -69,25 +81,27 @@
                 <span class="nav-label">数据看板</span>
             </router-link>
 
-            <!-- 管理端入口 -->
-            <div class="nav-divider"></div>
-            <div class="nav-section-label">管理端</div>
-            <router-link to="/admin/certification" class="nav-item" :class="{ active: $route.path.startsWith('/admin/certification') }">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 12l2 2 4-4"/>
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                </svg>
-                <span class="nav-label">认证审核</span>
-            </router-link>
-            <router-link to="/admin/users" class="nav-item" :class="{ active: $route.path.startsWith('/admin/users') }">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-                <span class="nav-label">用户列表</span>
-            </router-link>
+            <!-- 管理端入口（仅管理员登录后显示） -->
+            <template v-if="isAdmin">
+                <div class="nav-divider"></div>
+                <div class="nav-section-label">管理端</div>
+                <router-link to="/admin/certification" class="nav-item" :class="{ active: $route.path.startsWith('/admin/certification') }">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 12l2 2 4-4"/>
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    </svg>
+                    <span class="nav-label">认证审核</span>
+                </router-link>
+                <router-link to="/admin/users" class="nav-item" :class="{ active: $route.path.startsWith('/admin/users') }">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <span class="nav-label">用户列表</span>
+                </router-link>
+            </template>
         </nav>
 
         <!-- 底部版本信息 -->
@@ -98,7 +112,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useUserStore } from '../stores/user'
 import { messageApi } from '../api'
 
@@ -108,6 +122,13 @@ defineProps({
 
 const userStore = useUserStore()
 const unreadCount = ref(0)
+
+// 管理员身份：必须有 admin_token，且不能有普通用户 token（互斥）
+const isAdmin = computed(() => {
+    const hasAdminToken = !!localStorage.getItem('admin_token')
+    const hasUserToken = !!localStorage.getItem('token')
+    return hasAdminToken && !hasUserToken
+})
 
 async function fetchUnreadCount() {
     if (!userStore.isLoggedIn) return

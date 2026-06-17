@@ -138,6 +138,10 @@ export const itemApi = {
     // 搜索物品
     search(params) {
         return request.get('/items/search', { params })
+    },
+    // 智能匹配推荐
+    smartMatch(id) {
+        return request.get(`/items/match/${id}`)
     }
 }
 
@@ -228,7 +232,7 @@ adminRequest.interceptors.response.use(
                     localStorage.removeItem('admin_token')
                     localStorage.removeItem('admin_info')
                     ElMessage.error('管理员登录已过期，请重新登录')
-                    router.push('/admin/login')
+                    router.push('/login')
                     break
                 case 403:
                     ElMessage.error('没有权限访问')
@@ -251,9 +255,15 @@ adminRequest.interceptors.response.use(
     }
 )
 
+export const matchApi = {
+    smartMatch(id) {
+        return request.get(`/items/match/${id}`)
+    }
+}
+
 export const adminApi = {
     login(data) {
-        return request.post('/admin/login', data)
+        return adminRequest.post('/admin/login', data)
     },
     getCertificationList(params) {
         return adminRequest.get('/admin/certifications', { params })

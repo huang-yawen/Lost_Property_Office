@@ -14,6 +14,9 @@ export const useUserStore = defineStore('user', () => {
         userInfo.value = res.data.user
         localStorage.setItem('token', res.data.token)
         localStorage.setItem('userInfo', JSON.stringify(res.data.user))
+        // 清除管理员 token，确保互斥
+        localStorage.removeItem('admin_token')
+        localStorage.removeItem('admin_info')
         return res
     }
 
@@ -27,6 +30,9 @@ export const useUserStore = defineStore('user', () => {
         userInfo.value = null
         localStorage.removeItem('token')
         localStorage.removeItem('userInfo')
+        // 同时清除管理员 token，确保完全退出
+        localStorage.removeItem('admin_token')
+        localStorage.removeItem('admin_info')
     }
 
     async function updateProfile(data) {

@@ -11,8 +11,8 @@
         <div class="auth-container">
             <div class="auth-card">
                 <div class="auth-header">
-                    <h1 class="auth-title">欢迎回来</h1>
-                    <p class="auth-desc">登录您的账号以继续</p>
+                    <h1 class="auth-title">登录</h1>
+                    <p class="auth-desc">使用您的账号登录系统</p>
                 </div>
 
                 <form class="auth-form" @submit.prevent="handleLogin">
@@ -82,6 +82,9 @@
                     <span>还没有账号？</span>
                     <router-link to="/register" class="auth-link">立即注册</router-link>
                 </div>
+                <div class="auth-footer" style="margin-top: 8px;">
+                    <span>测试账号：admin / admin123（管理员）或 test / 123456（普通用户）</span>
+                </div>
             </div>
         </div>
     </div>
@@ -92,6 +95,7 @@ import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '../stores/user'
+import { adminApi } from '../api'
 
 const router = useRouter()
 const route = useRoute()
@@ -113,15 +117,38 @@ async function handleLogin() {
 
     loading.value = true
     try {
-        await userStore.login({
+        // 先尝试管理员登录
+        const adminRes = await adminApi.login({
             username: form.username.trim(),
             password: form.password
         })
-        ElMessage.success('登录成功')
-        const redirect = route.query.redirect || '/'
+        // 管理员登录成功
+        // 清除普通用户 token，确保互斥
+        localStorage.removeItem('token')
+        localStorage.removeItem('userInfo')
+        // 保存管理员 token
+        localStorage.setItem('admin_token', adminRes.data.token)
+        localStorage.setItem('admin_info', JSON.stringify(adminRes.data.user))
+        ElMessage.success('管理员登录成功')
+        const redirect = route.query.redirect || '/admin/certification'
         router.push(redirect)
-    } catch (error) {
-        console.error('登录失败:', error)
+    } catch (adminError) {
+        // 管理员登录失败，尝试普通用户登录
+        try {
+            // 清除管理员 token，确保互斥
+            localStorage.removeItem('admin_token')
+            localStorage.removeItem('admin_info')
+            await userStore.login({
+                username: form.username.trim(),
+                password: form.password
+            })
+            ElMessage.success('登录成功')
+            const redirect = route.query.redirect || '/'
+            router.push(redirect)
+        } catch (userError) {
+            // 两种登录都失败
+            ElMessage.error('用户名或密码错误')
+        }
     } finally {
         loading.value = false
     }
@@ -195,7 +222,7 @@ html.dark .auth-link:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%);
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4a 50%, #4a4a6a 100%);
     padding: 24px;
     overflow: hidden;
 }

@@ -33,12 +33,6 @@ const routes = [
         meta: { title: '发布信息', requiresAuth: true }
     },
     {
-        path: '/item/:id',
-        name: 'ItemDetail',
-        component: () => import('../views/ItemDetail.vue'),
-        meta: { title: '物品详情' }
-    },
-    {
         path: '/edit/:id',
         name: 'ItemEdit',
         component: () => import('../views/PublishForm.vue'),
@@ -66,13 +60,13 @@ const routes = [
         path: '/dashboard',
         name: 'Dashboard',
         component: () => import('../views/Dashboard.vue'),
-        meta: { title: '数据看板', requiresAuth: true }
+        meta: { title: '数据看板' }
     },
     {
         path: '/admin/login',
         name: 'AdminLogin',
-        component: () => import('../views/AdminLogin.vue'),
-        meta: { title: '管理端登录', hideLayout: true }
+        redirect: '/login',
+        meta: { title: '登录', hideLayout: true }
     },
     {
         path: '/admin/certification',
@@ -98,11 +92,12 @@ router.beforeEach((to, from, next) => {
     // 设置页面标题
     document.title = to.meta.title || '校园失物招领'
 
-    // 检查是否需要管理员登录
+    // 检查是否需要管理员登录（必须有 admin_token 且不能有普通用户 token）
     if (to.meta.requiresAdmin) {
         const adminToken = localStorage.getItem('admin_token')
-        if (!adminToken) {
-            next({ name: 'AdminLogin', query: { redirect: to.fullPath } })
+        const userToken = localStorage.getItem('token')
+        if (!adminToken || userToken) {
+            next({ name: 'Login', query: { redirect: to.fullPath } })
             return
         }
     }

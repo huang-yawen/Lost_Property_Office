@@ -52,7 +52,16 @@
                                 </svg>
                                 我的发布
                             </router-link>
-                            <router-link to="/dashboard" class="drop-item" @click="showUserMenu = false">
+                            <router-link v-if="isAdmin" to="/dashboard" class="drop-item" @click="showUserMenu = false">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                </svg>
+                                仪表盘
+                            </router-link>
+                            <router-link v-if="userStore.isLoggedIn && !isAdmin" to="/dashboard" class="drop-item" @click="showUserMenu = false">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="3" width="7" height="7"/>
                                     <rect x="14" y="3" width="7" height="7"/>
@@ -91,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useThemeStore } from '../stores/theme'
@@ -110,6 +119,13 @@ const themeStore = useThemeStore()
 const showUserMenu = ref(false)
 const userMenuRef = ref(null)
 const unreadCount = ref(0)
+
+// 管理员身份：必须有 admin_token，且不能有普通用户 token（互斥）
+const isAdmin = computed(() => {
+    const hasAdminToken = !!localStorage.getItem('admin_token')
+    const hasUserToken = !!localStorage.getItem('token')
+    return hasAdminToken && !hasUserToken
+})
 
 function toggleDarkMode() {
     showUserMenu.value = false
