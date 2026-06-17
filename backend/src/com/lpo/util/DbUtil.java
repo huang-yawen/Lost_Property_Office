@@ -3,9 +3,9 @@ package com.lpo.util;
 import java.sql.*;
 
 public class DbUtil {
-    private static final String URL = "jdbc:mysql://localhost:3306/lost_property?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false";
+    private static final String URL = "jdbc:mysql://localhost:3306/lost_property?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true";
     private static final String USER = "root";
-    private static final String PASSWORD = "root";
+    private static final String PASSWORD = "123456";
 
     static {
         try {

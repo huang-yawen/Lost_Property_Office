@@ -16,28 +16,29 @@ public class ItemServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null) pathInfo = "";
-
-        System.out.println("[ItemServlet] GET 请求: " + pathInfo + ", 参数: " + req.getQueryString());
+        System.out.println("[ItemServlet] GET request: " + pathInfo + ", 参数: " + req.getQueryString());
 
         try {
-            if (pathInfo.equals("/user")) {
-                getUserItems(req, resp);
+            if (pathInfo.matches("/\\d+")) {
+                getItemDetail(req, resp);
             } else if (pathInfo.equals("/user/stats")) {
                 getUserStats(req, resp);
+            } else if (pathInfo.equals("/user")) {
+                getUserItems(req, resp);
             } else if (pathInfo.equals("/search")) {
                 searchItems(req, resp);
             } else if (pathInfo.matches("/match/\\d+")) {
-                matchItem(req, resp);
-            } else if (pathInfo.matches("/\\d+")) {
-                getItemDetail(req, resp);
+                smartMatch(req, resp);
             } else if (pathInfo.equals("") || pathInfo.equals("/")) {
                 getItems(req, resp);
             } else {
-                ResponseUtil.error(resp, 404, "接口不存在");
+                System.out.println("[ItemServlet] 404 - 接口不存在: " + pathInfo);
+                ResponseUtil.error(resp, 404, "接口不存在: " + pathInfo);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            ResponseUtil.error(resp, 500, "服务器内部错误");
+            System.out.println("[ItemServlet] 500错误: " + e.getMessage());
+            ResponseUtil.error(resp, 500, "服务器内部错误: " + e.getMessage());
         }
     }
 
@@ -45,18 +46,19 @@ public class ItemServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null) pathInfo = "";
-
-        System.out.println("[ItemServlet] POST 请求: " + pathInfo);
+        System.out.println("[ItemServlet] POST request: " + pathInfo);
 
         try {
             if (pathInfo.equals("") || pathInfo.equals("/")) {
                 createItem(req, resp);
             } else {
-                ResponseUtil.error(resp, 404, "接口不存在");
+                System.out.println("[ItemServlet] 404 - 接口不存在: " + pathInfo);
+                ResponseUtil.error(resp, 404, "接口不存在: " + pathInfo);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            ResponseUtil.error(resp, 500, "服务器内部错误");
+            System.out.println("[ItemServlet] 500错误: " + e.getMessage());
+            ResponseUtil.error(resp, 500, "服务器内部错误: " + e.getMessage());
         }
     }
 
@@ -64,20 +66,21 @@ public class ItemServlet extends HttpServlet {
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null) pathInfo = "";
-
-        System.out.println("[ItemServlet] PUT 请求: " + pathInfo);
+        System.out.println("[ItemServlet] PUT request: " + pathInfo);
 
         try {
-            if (pathInfo.matches("/\\d+/status")) {
-                updateItemStatus(req, resp);
-            } else if (pathInfo.matches("/\\d+")) {
+            if (pathInfo.matches("/\\d+")) {
                 updateItem(req, resp);
+            } else if (pathInfo.matches("/\\d+/status")) {
+                updateItemStatus(req, resp);
             } else {
-                ResponseUtil.error(resp, 404, "接口不存在");
+                System.out.println("[ItemServlet] 404 - 接口不存在: " + pathInfo);
+                ResponseUtil.error(resp, 404, "接口不存在: " + pathInfo);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            ResponseUtil.error(resp, 500, "服务器内部错误");
+            System.out.println("[ItemServlet] 500错误: " + e.getMessage());
+            ResponseUtil.error(resp, 500, "服务器内部错误: " + e.getMessage());
         }
     }
 
@@ -85,156 +88,137 @@ public class ItemServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null) pathInfo = "";
-
-        System.out.println("[ItemServlet] DELETE 请求: " + pathInfo);
+        System.out.println("[ItemServlet] DELETE request: " + pathInfo);
 
         try {
             if (pathInfo.matches("/\\d+")) {
                 deleteItem(req, resp);
             } else {
-                ResponseUtil.error(resp, 404, "接口不存在");
+                System.out.println("[ItemServlet] 404 - 接口不存在: " + pathInfo);
+                ResponseUtil.error(resp, 404, "接口不存在: " + pathInfo);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            ResponseUtil.error(resp, 500, "服务器内部错误");
+            System.out.println("[ItemServlet] 500错误: " + e.getMessage());
+            ResponseUtil.error(resp, 500, "服务器内部错误: " + e.getMessage());
         }
     }
 
-    // ==================== 获取物品列表 ====================
+    // ==================== 获取物品列表（分页） ====================
     private void getItems(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        // 兼容前端传参：categoryId 和 category 都支持
-        String type = req.getParameter("type");
-        String category = req.getParameter("category");
-        if (category == null || category.isEmpty()) {
-            category = req.getParameter("categoryId");
-        }
-        String status = req.getParameter("status");
-        String pageStr = req.getParameter("page");
-        String pageSizeStr = req.getParameter("pageSize");
-        String keyword = req.getParameter("keyword");
-        String sort = req.getParameter("sort");
-        String startTime = req.getParameter("startTime");
-        String endTime = req.getParameter("endTime");
-
-        System.out.println("[ItemServlet] getItems - type=" + type + ", category=" + category + ", page=" + pageStr + ", pageSize=" + pageSizeStr + ", keyword=" + keyword + ", sort=" + sort + ", startTime=" + startTime + ", endTime=" + endTime);
-
-        int page = 1;
-        int pageSize = 20;
-        if (pageStr != null) page = Integer.parseInt(pageStr);
-        if (pageSizeStr != null) pageSize = Integer.parseInt(pageSizeStr);
-        int offset = (page - 1) * pageSize;
-
+        System.out.println("[ItemServlet] ===== 开始获取物品列表 =====");
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
+
         try {
             conn = DbUtil.getConnection();
+            System.out.println("[ItemServlet] 数据库连接成功");
 
-            // 先查总数
-            StringBuilder countSql = new StringBuilder("SELECT COUNT(*) as total FROM items i JOIN users u ON i.user_id = u.id WHERE 1=1");
+            StringBuilder where = new StringBuilder(" WHERE i.status != 'deleted'");
             List<Object> params = new ArrayList<>();
 
-            if (type != null && !type.isEmpty()) {
-                countSql.append(" AND i.type = ?");
-                params.add(type);
+            String typeStr = req.getParameter("type");
+            if (typeStr != null && !typeStr.isEmpty()) {
+                int type = Integer.parseInt(typeStr);
+                System.out.println("[ItemServlet] 类型筛选: " + type + " (1=招领, 2=寻物)");
+                if (type == 1) {
+                    where.append(" AND i.type = 'found'");
+                } else if (type == 2) {
+                    where.append(" AND i.type = 'lost'");
+                }
             }
-            if (category != null && !category.isEmpty()) {
-                countSql.append(" AND i.category = ?");
-                params.add(category);
+
+            String categoryIdStr = req.getParameter("categoryId");
+            if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
+                where.append(" AND i.category = ?");
+                params.add(categoryIdStr);
+                System.out.println("[ItemServlet] 分类筛选: categoryId=" + categoryIdStr);
             }
-            if (status != null && !status.isEmpty()) {
-                countSql.append(" AND i.status = ?");
-                params.add(status);
+
+            String keyword = req.getParameter("keyword");
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                where.append(" AND (i.title LIKE ? OR i.description LIKE ?)");
+                String likePattern = "%" + keyword.trim() + "%";
+                params.add(likePattern);
+                params.add(likePattern);
+                System.out.println("[ItemServlet] 关键词搜索: " + keyword);
             }
-            if (keyword != null && !keyword.isEmpty()) {
-                countSql.append(" AND (i.title LIKE ? OR i.description LIKE ?)");
-                String like = "%" + keyword + "%";
-                params.add(like);
-                params.add(like);
-            }
+
+            String startTime = req.getParameter("startTime");
+            String endTime = req.getParameter("endTime");
             if (startTime != null && !startTime.isEmpty()) {
-                countSql.append(" AND i.created_at >= ?");
+                where.append(" AND i.created_at >= ?");
                 params.add(startTime);
+                System.out.println("[ItemServlet] 时间筛选: startTime=" + startTime);
             }
             if (endTime != null && !endTime.isEmpty()) {
-                countSql.append(" AND i.created_at <= ?");
+                where.append(" AND i.created_at <= ?");
                 params.add(endTime);
+                System.out.println("[ItemServlet] 时间筛选: endTime=" + endTime);
             }
-            countSql.append(" AND i.status != 'deleted'");
 
-            ps = conn.prepareStatement(countSql.toString());
+            String sort = req.getParameter("sort");
+            String orderBy = " ORDER BY i.created_at DESC";
+            if ("asc".equals(sort)) {
+                orderBy = " ORDER BY i.created_at ASC";
+            }
+            System.out.println("[ItemServlet] 排序方式: " + (sort != null ? sort : "desc"));
+
+            String countSql = "SELECT COUNT(*) as total FROM items i" + where.toString();
+            System.out.println("[ItemServlet] 总数SQL: " + countSql);
+            ps = conn.prepareStatement(countSql);
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
             rs = ps.executeQuery();
             int total = 0;
-            if (rs.next()) total = rs.getInt("total");
+            if (rs.next()) {
+                total = rs.getInt("total");
+            }
+            System.out.println("[ItemServlet] 查询到总数: " + total);
             DbUtil.close(null, ps, rs);
 
-            // 查列表
-            StringBuilder sql = new StringBuilder("SELECT i.*, u.username, u.nickname, u.avatar FROM items i JOIN users u ON i.user_id = u.id WHERE 1=1");
-            params.clear();
+            int page = 1;
+            int pageSize = 12;
+            String pageStr = req.getParameter("page");
+            String pageSizeStr = req.getParameter("pageSize");
+            if (pageStr != null && !pageStr.isEmpty()) page = Integer.parseInt(pageStr);
+            if (pageSizeStr != null && !pageSizeStr.isEmpty()) pageSize = Integer.parseInt(pageSizeStr);
+            int offset = (page - 1) * pageSize;
+            System.out.println("[ItemServlet] 分页: page=" + page + ", pageSize=" + pageSize + ", offset=" + offset);
 
-            if (type != null && !type.isEmpty()) {
-                sql.append(" AND i.type = ?");
-                params.add(type);
+            String sql = "SELECT i.*, u.username, u.nickname, u.avatar, u.is_certified as user_certified " +
+                    "FROM items i LEFT JOIN users u ON i.user_id = u.id" +
+                    where.toString() + orderBy + " LIMIT ? OFFSET ?";
+            System.out.println("[ItemServlet] 查询SQL: " + sql);
+            ps = conn.prepareStatement(sql);
+            int paramIndex = 1;
+            for (Object param : params) {
+                ps.setObject(paramIndex++, param);
             }
-            if (category != null && !category.isEmpty()) {
-                sql.append(" AND i.category = ?");
-                params.add(category);
-            }
-            if (status != null && !status.isEmpty()) {
-                sql.append(" AND i.status = ?");
-                params.add(status);
-            }
-            if (keyword != null && !keyword.isEmpty()) {
-                sql.append(" AND (i.title LIKE ? OR i.description LIKE ?)");
-                String like = "%" + keyword + "%";
-                params.add(like);
-                params.add(like);
-            }
-            if (startTime != null && !startTime.isEmpty()) {
-                sql.append(" AND i.created_at >= ?");
-                params.add(startTime);
-            }
-            if (endTime != null && !endTime.isEmpty()) {
-                sql.append(" AND i.created_at <= ?");
-                params.add(endTime);
-            }
-            sql.append(" AND i.status != 'deleted'");
-
-            // 排序
-            if ("asc".equals(sort)) {
-                sql.append(" ORDER BY i.created_at ASC");
-            } else {
-                sql.append(" ORDER BY i.created_at DESC");
-            }
-            sql.append(" LIMIT ? OFFSET ?");
-            params.add(pageSize);
-            params.add(offset);
-
-            ps = conn.prepareStatement(sql.toString());
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
+            ps.setInt(paramIndex++, pageSize);
+            ps.setInt(paramIndex, offset);
             rs = ps.executeQuery();
 
             List<Map<String, Object>> list = new ArrayList<>();
             while (rs.next()) {
                 list.add(itemToMap(rs));
             }
+            System.out.println("[ItemServlet] 查询到 " + list.size() + " 条数据");
 
-            System.out.println("[ItemServlet] getItems 返回: total=" + total + ", 当前页数据=" + list.size() + "条");
+            Map<String, Object> data = new HashMap<>();
+            data.put("list", list);
+            data.put("total", total);
+            data.put("page", page);
+            data.put("pageSize", pageSize);
 
-            Map<String, Object> result = new HashMap<>();
-            result.put("list", list);
-            result.put("total", total);
-            result.put("page", page);
-            result.put("pageSize", pageSize);
-            ResponseUtil.success(resp, result);
+            System.out.println("[ItemServlet] ===== 返回数据: total=" + total + ", list.size=" + list.size() + " =====");
+            ResponseUtil.success(resp, data);
         } catch (SQLException e) {
             e.printStackTrace();
-            ResponseUtil.error(resp, 500, "获取物品列表失败");
+            System.out.println("[ItemServlet] 数据库异常: " + e.getMessage());
+            ResponseUtil.error(resp, 500, "获取物品列表失败: " + e.getMessage());
         } finally {
             DbUtil.close(conn, ps, rs);
         }
@@ -244,31 +228,30 @@ public class ItemServlet extends HttpServlet {
     private void getItemDetail(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
         int itemId = Integer.parseInt(pathInfo.substring(1));
-
-        System.out.println("[ItemServlet] getItemDetail - itemId=" + itemId);
+        System.out.println("[ItemServlet] 获取物品详情: id=" + itemId);
 
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             conn = DbUtil.getConnection();
-            String sql = "SELECT i.*, u.username, u.nickname, u.avatar, u.phone, u.email, u.is_certified FROM items i JOIN users u ON i.user_id = u.id WHERE i.id = ?";
+            String sql = "SELECT i.*, u.username, u.nickname, u.avatar, u.is_certified as user_certified " +
+                    "FROM items i LEFT JOIN users u ON i.user_id = u.id WHERE i.id = ?";
             ps = conn.prepareStatement(sql);
             ps.setInt(1, itemId);
             rs = ps.executeQuery();
 
             if (rs.next()) {
                 Map<String, Object> item = itemToMap(rs);
-                item.put("phone", rs.getString("phone"));
-                item.put("email", rs.getString("email"));
-                item.put("certified", rs.getInt("is_certified") == 1);
-                System.out.println("[ItemServlet] getItemDetail 返回: " + item.get("title"));
+                System.out.println("[ItemServlet] 获取详情成功: id=" + itemId + ", title=" + item.get("title"));
                 ResponseUtil.success(resp, item);
             } else {
+                System.out.println("[ItemServlet] 物品不存在: id=" + itemId);
                 ResponseUtil.error(resp, 404, "物品不存在");
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println("[ItemServlet] 获取详情异常: " + e.getMessage());
             ResponseUtil.error(resp, 500, "获取物品详情失败");
         } finally {
             DbUtil.close(conn, ps, rs);
@@ -279,64 +262,48 @@ public class ItemServlet extends HttpServlet {
     private void createItem(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String authHeader = req.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("[ItemServlet] 创建物品失败: 未授权");
             ResponseUtil.unauthorized(resp);
             return;
         }
         String token = authHeader.substring(7);
         Integer userId = JwtUtil.getUserId(token);
         if (userId == null) {
+            System.out.println("[ItemServlet] 创建物品失败: token无效");
             ResponseUtil.unauthorized(resp);
             return;
         }
 
         Map<String, Object> body = JsonUtil.toMap(readBody(req));
+        System.out.println("[ItemServlet] 创建物品 - userId=" + userId + ", title=" + body.get("title"));
+
         String title = (String) body.get("title");
         String description = (String) body.get("description");
         Object typeObj = body.get("type");
-        Object categoryObj = body.get("category");
+        String type;
+        if (typeObj instanceof Integer) {
+            type = ((Integer) typeObj) == 1 ? "found" : "lost";
+        } else {
+            type = (String) typeObj;
+        }
+        String category = body.get("categoryId") != null ? String.valueOf(body.get("categoryId")) : null;
         String location = (String) body.get("location");
         String date = (String) body.get("date");
-        String images = (String) body.get("images");
+        String images = body.get("images") != null ? JsonUtil.toJson(body.get("images")) : null;
         String contact = (String) body.get("contact");
 
-        // 处理 type：前端可能传数字 1/2 或字符串 "lost"/"found"
-        String type;
-        if (typeObj instanceof Number) {
-            type = ((Number) typeObj).intValue() == 1 ? "found" : "lost";
-        } else if (typeObj instanceof String) {
-            String ts = (String) typeObj;
-            if ("1".equals(ts) || "2".equals(ts)) {
-                type = "1".equals(ts) ? "found" : "lost";
-            } else {
-                type = ts;
-            }
-        } else {
-            type = null;
-        }
-
-        // 处理 category：前端可能传数字 categoryId
-        String category;
-        if (categoryObj instanceof Number) {
-            category = String.valueOf(((Number) categoryObj).intValue());
-        } else if (categoryObj instanceof String) {
-            category = (String) categoryObj;
-        } else {
-            category = null;
-        }
-
-        System.out.println("[ItemServlet] createItem - userId=" + userId + ", title=" + title + ", type=" + type + ", category=" + category);
-
-        if (title == null || type == null) {
-            ResponseUtil.error(resp, 400, "标题和类型不能为空");
+        if (title == null || title.trim().isEmpty()) {
+            System.out.println("[ItemServlet] 创建物品失败: 标题为空");
+            ResponseUtil.error(resp, 400, "标题不能为空");
             return;
         }
 
         Connection conn = null;
         PreparedStatement ps = null;
-        ResultSet rs = null;
         try {
             conn = DbUtil.getConnection();
-            String sql = "INSERT INTO items (user_id, title, description, type, category, location, date, images, contact, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW())";
+            String sql = "INSERT INTO items (user_id, title, description, type, category, location, date, images, contact, status, created_at) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW())";
             ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setInt(1, userId);
             ps.setString(2, title);
@@ -349,21 +316,23 @@ public class ItemServlet extends HttpServlet {
             ps.setString(9, contact);
             ps.executeUpdate();
 
-            rs = ps.getGeneratedKeys();
+            ResultSet rs = ps.getGeneratedKeys();
             if (rs.next()) {
-                int itemId = rs.getInt(1);
+                int newId = rs.getInt(1);
+                System.out.println("[ItemServlet] 创建物品成功: id=" + newId);
                 Map<String, Object> data = new HashMap<>();
-                data.put("id", itemId);
-                System.out.println("[ItemServlet] createItem 成功: itemId=" + itemId);
+                data.put("id", newId);
                 ResponseUtil.success(resp, data);
             } else {
+                System.out.println("[ItemServlet] 创建物品失败: 无法获取自增ID");
                 ResponseUtil.error(resp, 500, "创建失败");
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println("[ItemServlet] 创建物品异常: " + e.getMessage());
             ResponseUtil.error(resp, 500, "创建物品失败");
         } finally {
-            DbUtil.close(conn, ps, rs);
+            DbUtil.close(conn, ps);
         }
     }
 
@@ -383,24 +352,26 @@ public class ItemServlet extends HttpServlet {
 
         String pathInfo = req.getPathInfo();
         int itemId = Integer.parseInt(pathInfo.substring(1));
-
-        System.out.println("[ItemServlet] updateItem - itemId=" + itemId + ", userId=" + userId);
-
         Map<String, Object> body = JsonUtil.toMap(readBody(req));
+        System.out.println("[ItemServlet] 更新物品 - id=" + itemId + ", userId=" + userId + ", body=" + body);
+
         Connection conn = null;
         PreparedStatement ps = null;
         try {
             conn = DbUtil.getConnection();
-            // 检查是否是自己的物品
+
             String checkSql = "SELECT user_id FROM items WHERE id = ?";
             ps = conn.prepareStatement(checkSql);
             ps.setInt(1, itemId);
             ResultSet rs = ps.executeQuery();
             if (!rs.next()) {
+                System.out.println("[ItemServlet] 更新失败: 物品不存在 id=" + itemId);
                 ResponseUtil.error(resp, 404, "物品不存在");
                 return;
             }
-            if (rs.getInt("user_id") != userId) {
+            int ownerId = rs.getInt("user_id");
+            if (ownerId != userId) {
+                System.out.println("[ItemServlet] 更新失败: 无权操作 userId=" + userId + ", ownerId=" + ownerId);
                 ResponseUtil.forbidden(resp);
                 return;
             }
@@ -409,20 +380,53 @@ public class ItemServlet extends HttpServlet {
             StringBuilder sql = new StringBuilder("UPDATE items SET ");
             List<Object> params = new ArrayList<>();
 
-            if (body.containsKey("title")) { sql.append("title = ?, "); params.add(body.get("title")); }
-            if (body.containsKey("description")) { sql.append("description = ?, "); params.add(body.get("description")); }
-            if (body.containsKey("category")) { sql.append("category = ?, "); params.add(body.get("category")); }
-            if (body.containsKey("location")) { sql.append("location = ?, "); params.add(body.get("location")); }
-            if (body.containsKey("date")) { sql.append("date = ?, "); params.add(body.get("date")); }
-            if (body.containsKey("images")) { sql.append("images = ?, "); params.add(body.get("images")); }
-            if (body.containsKey("contact")) { sql.append("contact = ?, "); params.add(body.get("contact")); }
+            if (body.containsKey("title")) {
+                sql.append("title = ?, ");
+                params.add(body.get("title"));
+            }
+            if (body.containsKey("description")) {
+                sql.append("description = ?, ");
+                params.add(body.get("description"));
+            }
+            if (body.containsKey("type")) {
+                Object typeObj = body.get("type");
+                String type;
+                if (typeObj instanceof Integer) {
+                    type = ((Integer) typeObj) == 1 ? "found" : "lost";
+                } else {
+                    type = (String) typeObj;
+                }
+                sql.append("type = ?, ");
+                params.add(type);
+            }
+            if (body.containsKey("categoryId")) {
+                sql.append("category = ?, ");
+                params.add(String.valueOf(body.get("categoryId")));
+            }
+            if (body.containsKey("location")) {
+                sql.append("location = ?, ");
+                params.add(body.get("location"));
+            }
+            if (body.containsKey("status")) {
+                Object statusObj = body.get("status");
+                String status;
+                if (statusObj instanceof Integer) {
+                    int s = (Integer) statusObj;
+                    status = s == 2 ? "completed" : "active";
+                } else {
+                    status = (String) statusObj;
+                }
+                sql.append("status = ?, ");
+                params.add(status);
+            }
 
             if (params.isEmpty()) {
+                System.out.println("[ItemServlet] 更新失败: 没有需要更新的字段");
                 ResponseUtil.error(resp, 400, "没有需要更新的字段");
                 return;
             }
 
-            sql.setLength(sql.length() - 2);
+            sql.delete(sql.length() - 2, sql.length());
             sql.append(" WHERE id = ?");
             params.add(itemId);
 
@@ -431,286 +435,14 @@ public class ItemServlet extends HttpServlet {
                 ps.setObject(i + 1, params.get(i));
             }
             ps.executeUpdate();
-
-            System.out.println("[ItemServlet] updateItem 成功");
+            System.out.println("[ItemServlet] 更新物品成功: id=" + itemId);
             ResponseUtil.success(resp);
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println("[ItemServlet] 更新物品异常: " + e.getMessage());
             ResponseUtil.error(resp, 500, "更新物品失败");
         } finally {
             DbUtil.close(conn, ps);
-        }
-    }
-
-    // ==================== 删除物品 ====================
-    private void deleteItem(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String authHeader = req.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            ResponseUtil.unauthorized(resp);
-            return;
-        }
-        String token = authHeader.substring(7);
-        Integer userId = JwtUtil.getUserId(token);
-        if (userId == null) {
-            ResponseUtil.unauthorized(resp);
-            return;
-        }
-
-        String pathInfo = req.getPathInfo();
-        int itemId = Integer.parseInt(pathInfo.substring(1));
-
-        System.out.println("[ItemServlet] deleteItem - itemId=" + itemId + ", userId=" + userId);
-
-        Connection conn = null;
-        PreparedStatement ps = null;
-        try {
-            conn = DbUtil.getConnection();
-            String checkSql = "SELECT user_id FROM items WHERE id = ?";
-            ps = conn.prepareStatement(checkSql);
-            ps.setInt(1, itemId);
-            ResultSet rs = ps.executeQuery();
-            if (!rs.next()) {
-                ResponseUtil.error(resp, 404, "物品不存在");
-                return;
-            }
-            if (rs.getInt("user_id") != userId && !JwtUtil.isAdmin(token)) {
-                ResponseUtil.forbidden(resp);
-                return;
-            }
-            DbUtil.close(null, ps, rs);
-
-            String sql = "UPDATE items SET status = 'deleted' WHERE id = ?";
-            ps = conn.prepareStatement(sql);
-            ps.setInt(1, itemId);
-            ps.executeUpdate();
-
-            System.out.println("[ItemServlet] deleteItem 成功");
-            ResponseUtil.success(resp);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            ResponseUtil.error(resp, 500, "删除物品失败");
-        } finally {
-            DbUtil.close(conn, ps);
-        }
-    }
-
-    // ==================== 获取用户自己的物品 ====================
-    private void getUserItems(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String authHeader = req.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            ResponseUtil.unauthorized(resp);
-            return;
-        }
-        String token = authHeader.substring(7);
-        Integer userId = JwtUtil.getUserId(token);
-        if (userId == null) {
-            ResponseUtil.unauthorized(resp);
-            return;
-        }
-
-        String type = req.getParameter("type");
-        System.out.println("[ItemServlet] getUserItems - userId=" + userId + ", type=" + type);
-
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            conn = DbUtil.getConnection();
-            String sql;
-            if (type != null && !type.isEmpty()) {
-                sql = "SELECT i.*, u.username, u.nickname, u.avatar FROM items i JOIN users u ON i.user_id = u.id WHERE i.user_id = ? AND i.type = ? AND i.status != 'deleted' ORDER BY i.created_at DESC";
-                ps = conn.prepareStatement(sql);
-                ps.setInt(1, userId);
-                ps.setString(2, type);
-            } else {
-                sql = "SELECT i.*, u.username, u.nickname, u.avatar FROM items i JOIN users u ON i.user_id = u.id WHERE i.user_id = ? AND i.status != 'deleted' ORDER BY i.created_at DESC";
-                ps = conn.prepareStatement(sql);
-                ps.setInt(1, userId);
-            }
-            rs = ps.executeQuery();
-
-            List<Map<String, Object>> list = new ArrayList<>();
-            while (rs.next()) {
-                list.add(itemToMap(rs));
-            }
-
-            System.out.println("[ItemServlet] getUserItems 返回: " + list.size() + "条");
-            ResponseUtil.success(resp, list);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            ResponseUtil.error(resp, 500, "获取用户物品失败");
-        } finally {
-            DbUtil.close(conn, ps, rs);
-        }
-    }
-
-    // ==================== 获取用户统计 ====================
-    private void getUserStats(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String authHeader = req.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            ResponseUtil.unauthorized(resp);
-            return;
-        }
-        String token = authHeader.substring(7);
-        Integer userId = JwtUtil.getUserId(token);
-        if (userId == null) {
-            ResponseUtil.unauthorized(resp);
-            return;
-        }
-
-        System.out.println("[ItemServlet] getUserStats - userId=" + userId);
-
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            conn = DbUtil.getConnection();
-            Map<String, Object> stats = new HashMap<>();
-
-            // 总发布数
-            String totalSql = "SELECT COUNT(*) as total FROM items WHERE user_id = ? AND status != 'deleted'";
-            ps = conn.prepareStatement(totalSql);
-            ps.setInt(1, userId);
-            rs = ps.executeQuery();
-            if (rs.next()) stats.put("total", rs.getInt("total"));
-            DbUtil.close(null, ps, rs);
-
-            // 失物数
-            String lostSql = "SELECT COUNT(*) as total FROM items WHERE user_id = ? AND type = 'lost' AND status != 'deleted'";
-            ps = conn.prepareStatement(lostSql);
-            ps.setInt(1, userId);
-            rs = ps.executeQuery();
-            if (rs.next()) stats.put("lost", rs.getInt("total"));
-            DbUtil.close(null, ps, rs);
-
-            // 招领数
-            String foundSql = "SELECT COUNT(*) as total FROM items WHERE user_id = ? AND type = 'found' AND status != 'deleted'";
-            ps = conn.prepareStatement(foundSql);
-            ps.setInt(1, userId);
-            rs = ps.executeQuery();
-            if (rs.next()) stats.put("found", rs.getInt("total"));
-            DbUtil.close(null, ps, rs);
-
-            // 已完成数
-            String completedSql = "SELECT COUNT(*) as total FROM items WHERE user_id = ? AND status = 'completed'";
-            ps = conn.prepareStatement(completedSql);
-            ps.setInt(1, userId);
-            rs = ps.executeQuery();
-            if (rs.next()) stats.put("completed", rs.getInt("total"));
-
-            System.out.println("[ItemServlet] getUserStats 返回: " + stats);
-            ResponseUtil.success(resp, stats);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            ResponseUtil.error(resp, 500, "获取用户统计失败");
-        } finally {
-            DbUtil.close(conn, ps, rs);
-        }
-    }
-
-    // ==================== 搜索物品 ====================
-    private void searchItems(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String keyword = req.getParameter("keyword");
-        String type = req.getParameter("type");
-        String category = req.getParameter("category");
-
-        System.out.println("[ItemServlet] searchItems - keyword=" + keyword + ", type=" + type + ", category=" + category);
-
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            conn = DbUtil.getConnection();
-            StringBuilder sql = new StringBuilder("SELECT i.*, u.username, u.nickname, u.avatar FROM items i JOIN users u ON i.user_id = u.id WHERE i.status != 'deleted'");
-            List<Object> params = new ArrayList<>();
-
-            if (keyword != null && !keyword.isEmpty()) {
-                sql.append(" AND (i.title LIKE ? OR i.description LIKE ?)");
-                String like = "%" + keyword + "%";
-                params.add(like);
-                params.add(like);
-            }
-            if (type != null && !type.isEmpty()) {
-                sql.append(" AND i.type = ?");
-                params.add(type);
-            }
-            if (category != null && !category.isEmpty()) {
-                sql.append(" AND i.category = ?");
-                params.add(category);
-            }
-            sql.append(" ORDER BY i.created_at DESC LIMIT 50");
-
-            ps = conn.prepareStatement(sql.toString());
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-            rs = ps.executeQuery();
-
-            List<Map<String, Object>> list = new ArrayList<>();
-            while (rs.next()) {
-                list.add(itemToMap(rs));
-            }
-
-            System.out.println("[ItemServlet] searchItems 返回: " + list.size() + "条");
-            ResponseUtil.success(resp, list);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            ResponseUtil.error(resp, 500, "搜索失败");
-        } finally {
-            DbUtil.close(conn, ps, rs);
-        }
-    }
-
-    // ==================== 智能匹配 ====================
-    private void matchItem(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String pathInfo = req.getPathInfo();
-        int itemId = Integer.parseInt(pathInfo.substring(7));
-
-        System.out.println("[ItemServlet] matchItem - itemId=" + itemId);
-
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            conn = DbUtil.getConnection();
-            // 获取当前物品信息
-            String getSql = "SELECT * FROM items WHERE id = ?";
-            ps = conn.prepareStatement(getSql);
-            ps.setInt(1, itemId);
-            rs = ps.executeQuery();
-            if (!rs.next()) {
-                ResponseUtil.error(resp, 404, "物品不存在");
-                return;
-            }
-
-            String type = rs.getString("type");
-            String category = rs.getString("category");
-            String oppositeType = "lost".equals(type) ? "found" : "lost";
-
-            System.out.println("[ItemServlet] matchItem - 当前物品 type=" + type + ", category=" + category + ", 匹配类型=" + oppositeType);
-
-            DbUtil.close(null, ps, rs);
-
-            // 查找匹配的物品
-            String matchSql = "SELECT i.*, u.username, u.nickname, u.avatar FROM items i JOIN users u ON i.user_id = u.id WHERE i.type = ? AND i.category = ? AND i.status = 'active' AND i.id != ? ORDER BY i.created_at DESC LIMIT 10";
-            ps = conn.prepareStatement(matchSql);
-            ps.setString(1, oppositeType);
-            ps.setString(2, category);
-            ps.setInt(3, itemId);
-            rs = ps.executeQuery();
-
-            List<Map<String, Object>> list = new ArrayList<>();
-            while (rs.next()) {
-                list.add(itemToMap(rs));
-            }
-
-            System.out.println("[ItemServlet] matchItem 返回: " + list.size() + "条匹配");
-            ResponseUtil.success(resp, list);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            ResponseUtil.error(resp, 500, "匹配失败");
-        } finally {
-            DbUtil.close(conn, ps, rs);
         }
     }
 
@@ -730,115 +462,372 @@ public class ItemServlet extends HttpServlet {
 
         String pathInfo = req.getPathInfo();
         int itemId = Integer.parseInt(pathInfo.substring(1, pathInfo.indexOf("/status")));
-
         Map<String, Object> body = JsonUtil.toMap(readBody(req));
-        Object statusObj = body.get("status");
-        String status;
-        if (statusObj instanceof Number) {
-            status = ((Number) statusObj).intValue() == 2 ? "completed" : "active";
-        } else {
-            status = (String) statusObj;
-        }
-
-        System.out.println("[ItemServlet] updateItemStatus - itemId=" + itemId + ", userId=" + userId + ", status=" + status);
+        String status = (String) body.get("status");
+        System.out.println("[ItemServlet] 更新物品状态 - id=" + itemId + ", status=" + status);
 
         Connection conn = null;
         PreparedStatement ps = null;
         try {
             conn = DbUtil.getConnection();
-            String checkSql = "SELECT user_id FROM items WHERE id = ?";
-            ps = conn.prepareStatement(checkSql);
-            ps.setInt(1, itemId);
-            ResultSet rs = ps.executeQuery();
-            if (!rs.next()) {
-                ResponseUtil.error(resp, 404, "物品不存在");
-                return;
-            }
-            if (rs.getInt("user_id") != userId) {
-                ResponseUtil.forbidden(resp);
-                return;
-            }
-            DbUtil.close(null, ps, rs);
-
             String sql = "UPDATE items SET status = ? WHERE id = ?";
             ps = conn.prepareStatement(sql);
             ps.setString(1, status);
             ps.setInt(2, itemId);
             ps.executeUpdate();
-
-            System.out.println("[ItemServlet] updateItemStatus 成功");
+            System.out.println("[ItemServlet] 更新状态成功");
             ResponseUtil.success(resp);
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println("[ItemServlet] 更新状态异常: " + e.getMessage());
             ResponseUtil.error(resp, 500, "更新状态失败");
         } finally {
             DbUtil.close(conn, ps);
         }
     }
 
-    // ==================== 工具方法：将 ResultSet 转为前端期望的 Map 格式 ====================
-    private Map<String, Object> itemToMap(ResultSet rs) throws SQLException {
-        Map<String, Object> item = new HashMap<>();
-        item.put("id", rs.getInt("id"));
-        item.put("userId", rs.getInt("user_id"));
-        item.put("title", rs.getString("title"));
-        item.put("description", rs.getString("description"));
-
-        // type: 数据库存 "lost"/"found"，前端期望 1(招领)/2(寻物)
-        String dbType = rs.getString("type");
-        if ("found".equals(dbType)) {
-            item.put("type", 1);
-        } else if ("lost".equals(dbType)) {
-            item.put("type", 2);
-        } else {
-            item.put("type", dbType);
+    // ==================== 删除/下架物品 ====================
+    private void deleteItem(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            ResponseUtil.unauthorized(resp);
+            return;
+        }
+        String token = authHeader.substring(7);
+        Integer userId = JwtUtil.getUserId(token);
+        if (userId == null) {
+            ResponseUtil.unauthorized(resp);
+            return;
         }
 
-        // category: 数据库存字符串，前端期望 categoryId（数字）
-        String dbCategory = rs.getString("category");
+        String pathInfo = req.getPathInfo();
+        int itemId = Integer.parseInt(pathInfo.substring(1));
+        System.out.println("[ItemServlet] 删除物品 - id=" + itemId + ", userId=" + userId);
+
+        Connection conn = null;
+        PreparedStatement ps = null;
         try {
-            item.put("categoryId", Integer.parseInt(dbCategory));
-        } catch (NumberFormatException e) {
-            item.put("categoryId", dbCategory);
+            conn = DbUtil.getConnection();
+            String sql = "UPDATE items SET status = 'deleted' WHERE id = ? AND user_id = ?";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, itemId);
+            ps.setInt(2, userId);
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                System.out.println("[ItemServlet] 删除成功");
+                ResponseUtil.success(resp);
+            } else {
+                System.out.println("[ItemServlet] 删除失败: 物品不存在或无权操作");
+                ResponseUtil.error(resp, 404, "物品不存在或无权操作");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("[ItemServlet] 删除异常: " + e.getMessage());
+            ResponseUtil.error(resp, 500, "删除物品失败");
+        } finally {
+            DbUtil.close(conn, ps);
         }
-        item.put("category", dbCategory);
-
-        item.put("location", rs.getString("location"));
-        item.put("date", rs.getString("date"));
-        item.put("images", rs.getString("images"));
-        item.put("contact", rs.getString("contact"));
-
-        // status: 数据库存 "active"/"completed"/"deleted"，前端期望 1(进行中)/2(已解决)
-        String dbStatus = rs.getString("status");
-        if ("active".equals(dbStatus)) {
-            item.put("status", 1);
-        } else if ("completed".equals(dbStatus)) {
-            item.put("status", 2);
-        } else if ("deleted".equals(dbStatus)) {
-            item.put("status", 0);
-        } else {
-            item.put("status", dbStatus);
-        }
-
-        // createTime: 前端期望驼峰命名
-        item.put("createTime", rs.getString("created_at"));
-        item.put("created_at", rs.getString("created_at"));
-
-        try {
-            item.put("username", rs.getString("username"));
-            item.put("nickname", rs.getString("nickname"));
-            item.put("avatar", rs.getString("avatar"));
-        } catch (SQLException ignored) {}
-        return item;
     }
 
+    // ==================== 获取用户自己的物品 ====================
+    private void getUserItems(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            ResponseUtil.unauthorized(resp);
+            return;
+        }
+        String token = authHeader.substring(7);
+        Integer userId = JwtUtil.getUserId(token);
+        if (userId == null) {
+            ResponseUtil.unauthorized(resp);
+            return;
+        }
+        System.out.println("[ItemServlet] 获取用户物品 - userId=" + userId);
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DbUtil.getConnection();
+
+            int page = 1;
+            int pageSize = 20;
+            String pageStr = req.getParameter("page");
+            String pageSizeStr = req.getParameter("pageSize");
+            if (pageStr != null && !pageStr.isEmpty()) page = Integer.parseInt(pageStr);
+            if (pageSizeStr != null && !pageSizeStr.isEmpty()) pageSize = Integer.parseInt(pageSizeStr);
+            int offset = (page - 1) * pageSize;
+
+            String countSql = "SELECT COUNT(*) as total FROM items WHERE user_id = ? AND status != 'deleted'";
+            ps = conn.prepareStatement(countSql);
+            ps.setInt(1, userId);
+            rs = ps.executeQuery();
+            int total = 0;
+            if (rs.next()) total = rs.getInt("total");
+            DbUtil.close(null, ps, rs);
+
+            String sql = "SELECT i.*, u.username, u.nickname, u.avatar, u.is_certified as user_certified " +
+                    "FROM items i LEFT JOIN users u ON i.user_id = u.id " +
+                    "WHERE i.user_id = ? AND i.status != 'deleted' ORDER BY i.created_at DESC LIMIT ? OFFSET ?";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            ps.setInt(2, pageSize);
+            ps.setInt(3, offset);
+            rs = ps.executeQuery();
+
+            List<Map<String, Object>> list = new ArrayList<>();
+            while (rs.next()) {
+                list.add(itemToMap(rs));
+            }
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("list", list);
+            data.put("total", total);
+            data.put("page", page);
+            data.put("pageSize", pageSize);
+            System.out.println("[ItemServlet] 用户物品: total=" + total + ", list=" + list.size());
+            ResponseUtil.success(resp, data);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("[ItemServlet] 获取用户物品异常: " + e.getMessage());
+            ResponseUtil.error(resp, 500, "获取用户物品失败");
+        } finally {
+            DbUtil.close(conn, ps, rs);
+        }
+    }
+
+    // ==================== 获取用户统计 ====================
+    private void getUserStats(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            ResponseUtil.unauthorized(resp);
+            return;
+        }
+        String token = authHeader.substring(7);
+        Integer userId = JwtUtil.getUserId(token);
+        if (userId == null) {
+            ResponseUtil.unauthorized(resp);
+            return;
+        }
+        System.out.println("[ItemServlet] 获取用户统计 - userId=" + userId);
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DbUtil.getConnection();
+
+            String sql = "SELECT " +
+                    "COUNT(*) as total, " +
+                    "SUM(CASE WHEN type = 'found' THEN 1 ELSE 0 END) as found_count, " +
+                    "SUM(CASE WHEN type = 'lost' THEN 1 ELSE 0 END) as lost_count, " +
+                    "SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_count " +
+                    "FROM items WHERE user_id = ? AND status != 'deleted'";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            rs = ps.executeQuery();
+
+            Map<String, Object> stats = new HashMap<>();
+            if (rs.next()) {
+                stats.put("total", rs.getInt("total"));
+                stats.put("found_count", rs.getInt("found_count"));
+                stats.put("lost_count", rs.getInt("lost_count"));
+                stats.put("completed_count", rs.getInt("completed_count"));
+            } else {
+                stats.put("total", 0);
+                stats.put("found_count", 0);
+                stats.put("lost_count", 0);
+                stats.put("completed_count", 0);
+            }
+            System.out.println("[ItemServlet] 用户统计: " + stats);
+            ResponseUtil.success(resp, stats);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("[ItemServlet] 获取用户统计异常: " + e.getMessage());
+            ResponseUtil.error(resp, 500, "获取用户统计失败");
+        } finally {
+            DbUtil.close(conn, ps, rs);
+        }
+    }
+
+    // ==================== 搜索物品 ====================
+    private void searchItems(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String keyword = req.getParameter("keyword");
+        System.out.println("[ItemServlet] 搜索物品 - keyword=" + keyword);
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DbUtil.getConnection();
+
+            int page = 1;
+            int pageSize = 20;
+            String pageStr = req.getParameter("page");
+            String pageSizeStr = req.getParameter("pageSize");
+            if (pageStr != null && !pageStr.isEmpty()) page = Integer.parseInt(pageStr);
+            if (pageSizeStr != null && !pageSizeStr.isEmpty()) pageSize = Integer.parseInt(pageSizeStr);
+            int offset = (page - 1) * pageSize;
+
+            StringBuilder where = new StringBuilder(" WHERE i.status != 'deleted'");
+            List<Object> params = new ArrayList<>();
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                where.append(" AND (i.title LIKE ? OR i.description LIKE ?)");
+                String like = "%" + keyword.trim() + "%";
+                params.add(like);
+                params.add(like);
+            }
+
+            String countSql = "SELECT COUNT(*) as total FROM items i" + where.toString();
+            ps = conn.prepareStatement(countSql);
+            for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
+            rs = ps.executeQuery();
+            int total = 0;
+            if (rs.next()) total = rs.getInt("total");
+            DbUtil.close(null, ps, rs);
+
+            String sql = "SELECT i.*, u.username, u.nickname, u.avatar, u.is_certified as user_certified " +
+                    "FROM items i LEFT JOIN users u ON i.user_id = u.id" +
+                    where.toString() + " ORDER BY i.created_at DESC LIMIT ? OFFSET ?";
+            ps = conn.prepareStatement(sql);
+            int idx = 1;
+            for (Object p : params) ps.setObject(idx++, p);
+            ps.setInt(idx++, pageSize);
+            ps.setInt(idx, offset);
+            rs = ps.executeQuery();
+
+            List<Map<String, Object>> list = new ArrayList<>();
+            while (rs.next()) list.add(itemToMap(rs));
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("list", list);
+            data.put("total", total);
+            System.out.println("[ItemServlet] 搜索结果: total=" + total);
+            ResponseUtil.success(resp, data);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("[ItemServlet] 搜索异常: " + e.getMessage());
+            ResponseUtil.error(resp, 500, "搜索失败");
+        } finally {
+            DbUtil.close(conn, ps, rs);
+        }
+    }
+
+    // ==================== 智能匹配推荐 ====================
+    private void smartMatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String pathInfo = req.getPathInfo();
+        int itemId = Integer.parseInt(pathInfo.substring(pathInfo.lastIndexOf("/") + 1));
+        System.out.println("[ItemServlet] 智能匹配 - itemId=" + itemId);
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DbUtil.getConnection();
+
+            String getSql = "SELECT * FROM items WHERE id = ?";
+            ps = conn.prepareStatement(getSql);
+            ps.setInt(1, itemId);
+            rs = ps.executeQuery();
+            if (!rs.next()) {
+                System.out.println("[ItemServlet] 匹配失败: 物品不存在 id=" + itemId);
+                ResponseUtil.error(resp, 404, "物品不存在");
+                return;
+            }
+
+            String currentType = rs.getString("type");
+            String currentCategory = rs.getString("category");
+            DbUtil.close(null, ps, rs);
+
+            String matchType = "found".equals(currentType) ? "lost" : "found";
+            System.out.println("[ItemServlet] 匹配类型: " + currentType + " -> " + matchType);
+
+            String sql = "SELECT i.*, u.username, u.nickname, u.avatar, u.is_certified as user_certified " +
+                    "FROM items i LEFT JOIN users u ON i.user_id = u.id " +
+                    "WHERE i.type = ? AND i.status = 'active' AND i.id != ? " +
+                    "ORDER BY CASE WHEN i.category = ? THEN 0 ELSE 1 END, i.created_at DESC LIMIT 5";
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, matchType);
+            ps.setInt(2, itemId);
+            ps.setString(3, currentCategory);
+            rs = ps.executeQuery();
+
+            List<Map<String, Object>> list = new ArrayList<>();
+            while (rs.next()) {
+                list.add(itemToMap(rs));
+            }
+            System.out.println("[ItemServlet] 匹配结果: " + list.size() + "条");
+            ResponseUtil.success(resp, list);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("[ItemServlet] 匹配异常: " + e.getMessage());
+            ResponseUtil.error(resp, 500, "智能匹配失败");
+        } finally {
+            DbUtil.close(conn, ps, rs);
+        }
+    }
+
+    // ==================== 将 ResultSet 转为 Map（统一字段名） ====================
+    private Map<String, Object> itemToMap(ResultSet rs) throws SQLException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", rs.getInt("id"));
+        map.put("userId", rs.getInt("user_id"));
+        map.put("title", rs.getString("title"));
+        map.put("description", rs.getString("description"));
+
+        // type: 数据库存 'found'/'lost'，返回 1(招领)/2(寻物)
+        String dbType = rs.getString("type");
+        if ("found".equals(dbType)) {
+            map.put("type", 1);
+        } else if ("lost".equals(dbType)) {
+            map.put("type", 2);
+        } else {
+            map.put("type", dbType);
+        }
+
+        // categoryId: 数据库存字符串，返回数字
+        String dbCategory = rs.getString("category");
+        try {
+            map.put("categoryId", dbCategory != null ? Integer.parseInt(dbCategory) : null);
+        } catch (NumberFormatException e) {
+            map.put("categoryId", dbCategory);
+        }
+
+        map.put("location", rs.getString("location"));
+        map.put("date", rs.getString("date"));
+        map.put("images", rs.getString("images"));
+        map.put("contact", rs.getString("contact"));
+
+        // status: 数据库存 'active'/'completed'/'deleted'，返回 1(进行中)/2(已解决)
+        String dbStatus = rs.getString("status");
+        if ("active".equals(dbStatus)) {
+            map.put("status", 1);
+        } else if ("completed".equals(dbStatus)) {
+            map.put("status", 2);
+        } else {
+            map.put("status", dbStatus);
+        }
+
+        // createTime: 数据库存 created_at
+        Timestamp createTime = rs.getTimestamp("created_at");
+        map.put("createTime", createTime != null ? createTime.toString() : null);
+
+        // 用户信息
+        map.put("username", rs.getString("username"));
+        map.put("nickname", rs.getString("nickname"));
+        map.put("avatar", rs.getString("avatar"));
+        map.put("certified", rs.getBoolean("user_certified"));
+
+        return map;
+    }
+
+    // ==================== 读取请求体 ====================
     private String readBody(HttpServletRequest req) throws IOException {
         StringBuilder sb = new StringBuilder();
         String line;
-        try (java.io.BufferedReader reader = req.getReader()) {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
+        java.io.BufferedReader reader = req.getReader();
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
         }
         return sb.toString();
     }

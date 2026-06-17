@@ -4,7 +4,7 @@ import router from '../router'
 
 // 创建 axios 实例
 const request = axios.create({
-    baseURL: 'http://localhost:8080/api',
+    baseURL: '/api',
     timeout: 15000,
     headers: {
         'Content-Type': 'application/json'
@@ -196,7 +196,7 @@ export const uploadApi = {
 // ============ 管理端 API ============
 // 创建 admin 专用的 axios 实例（使用 admin_token）
 const adminRequest = axios.create({
-    baseURL: 'http://localhost:8080/api',
+    baseURL: '/api',
     timeout: 15000,
     headers: {
         'Content-Type': 'application/json'
