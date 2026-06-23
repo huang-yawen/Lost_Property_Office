@@ -92,9 +92,13 @@ public class MessageServlet extends HttpServlet {
         ResultSet rs = null;
         try {
             conn = DbUtil.getConnection();
-            String sql = "SELECT m.*, u_sender.username as sender_username, u_sender.nickname as sender_nickname, u_sender.avatar as sender_avatar " +
+            String sql = "SELECT m.*, u_sender.username as sender_username, u_sender.nickname as sender_nickname, u_sender.avatar as sender_avatar, " +
+                    "u_receiver.username as receiver_username, u_receiver.nickname as receiver_nickname, u_receiver.avatar as receiver_avatar, " +
+                    "i.title as item_title " +
                     "FROM messages m " +
                     "JOIN users u_sender ON m.sender_id = u_sender.id " +
+                    "JOIN users u_receiver ON m.receiver_id = u_receiver.id " +
+                    "LEFT JOIN items i ON m.item_id = i.id " +
                     "WHERE m.item_id = ? " +
                     "ORDER BY m.created_at ASC";
             ps = conn.prepareStatement(sql);
@@ -103,18 +107,7 @@ public class MessageServlet extends HttpServlet {
 
             List<Map<String, Object>> list = new ArrayList<>();
             while (rs.next()) {
-                Map<String, Object> msg = new HashMap<>();
-                msg.put("id", rs.getInt("id"));
-                msg.put("sender_id", rs.getInt("sender_id"));
-                msg.put("receiver_id", rs.getInt("receiver_id"));
-                msg.put("item_id", rs.getInt("item_id"));
-                msg.put("content", rs.getString("content"));
-                msg.put("is_read", rs.getInt("is_read"));
-                msg.put("created_at", rs.getString("created_at"));
-                msg.put("sender_username", rs.getString("sender_username"));
-                msg.put("sender_nickname", rs.getString("sender_nickname"));
-                msg.put("sender_avatar", rs.getString("sender_avatar"));
-                list.add(msg);
+                list.add(buildMessageMap(rs));
             }
             System.out.println("[MessageServlet] getItemMessages 返回: " + list.size() + "条");
             ResponseUtil.success(resp, list);
@@ -146,9 +139,13 @@ public class MessageServlet extends HttpServlet {
         ResultSet rs = null;
         try {
             conn = DbUtil.getConnection();
-            String sql = "SELECT m.*, u_sender.username as sender_username, u_sender.nickname as sender_nickname, u_sender.avatar as sender_avatar " +
+            String sql = "SELECT m.*, u_sender.username as sender_username, u_sender.nickname as sender_nickname, u_sender.avatar as sender_avatar, " +
+                    "u_receiver.username as receiver_username, u_receiver.nickname as receiver_nickname, u_receiver.avatar as receiver_avatar, " +
+                    "i.title as item_title " +
                     "FROM messages m " +
                     "JOIN users u_sender ON m.sender_id = u_sender.id " +
+                    "JOIN users u_receiver ON m.receiver_id = u_receiver.id " +
+                    "LEFT JOIN items i ON m.item_id = i.id " +
                     "WHERE m.receiver_id = ? " +
                     "ORDER BY m.created_at DESC LIMIT 100";
             ps = conn.prepareStatement(sql);
@@ -157,18 +154,7 @@ public class MessageServlet extends HttpServlet {
 
             List<Map<String, Object>> list = new ArrayList<>();
             while (rs.next()) {
-                Map<String, Object> msg = new HashMap<>();
-                msg.put("id", rs.getInt("id"));
-                msg.put("sender_id", rs.getInt("sender_id"));
-                msg.put("receiver_id", rs.getInt("receiver_id"));
-                msg.put("item_id", rs.getInt("item_id"));
-                msg.put("content", rs.getString("content"));
-                msg.put("is_read", rs.getInt("is_read"));
-                msg.put("created_at", rs.getString("created_at"));
-                msg.put("sender_username", rs.getString("sender_username"));
-                msg.put("sender_nickname", rs.getString("sender_nickname"));
-                msg.put("sender_avatar", rs.getString("sender_avatar"));
-                list.add(msg);
+                list.add(buildMessageMap(rs));
             }
             System.out.println("[MessageServlet] getMyMessages 返回: " + list.size() + "条");
             ResponseUtil.success(resp, list);
@@ -200,9 +186,13 @@ public class MessageServlet extends HttpServlet {
         ResultSet rs = null;
         try {
             conn = DbUtil.getConnection();
-            String sql = "SELECT m.*, u_receiver.username as receiver_username, u_receiver.nickname as receiver_nickname, u_receiver.avatar as receiver_avatar " +
+            String sql = "SELECT m.*, u_sender.username as sender_username, u_sender.nickname as sender_nickname, u_sender.avatar as sender_avatar, " +
+                    "u_receiver.username as receiver_username, u_receiver.nickname as receiver_nickname, u_receiver.avatar as receiver_avatar, " +
+                    "i.title as item_title " +
                     "FROM messages m " +
+                    "JOIN users u_sender ON m.sender_id = u_sender.id " +
                     "JOIN users u_receiver ON m.receiver_id = u_receiver.id " +
+                    "LEFT JOIN items i ON m.item_id = i.id " +
                     "WHERE m.sender_id = ? " +
                     "ORDER BY m.created_at DESC LIMIT 100";
             ps = conn.prepareStatement(sql);
@@ -211,18 +201,7 @@ public class MessageServlet extends HttpServlet {
 
             List<Map<String, Object>> list = new ArrayList<>();
             while (rs.next()) {
-                Map<String, Object> msg = new HashMap<>();
-                msg.put("id", rs.getInt("id"));
-                msg.put("sender_id", rs.getInt("sender_id"));
-                msg.put("receiver_id", rs.getInt("receiver_id"));
-                msg.put("item_id", rs.getInt("item_id"));
-                msg.put("content", rs.getString("content"));
-                msg.put("is_read", rs.getInt("is_read"));
-                msg.put("created_at", rs.getString("created_at"));
-                msg.put("receiver_username", rs.getString("receiver_username"));
-                msg.put("receiver_nickname", rs.getString("receiver_nickname"));
-                msg.put("receiver_avatar", rs.getString("receiver_avatar"));
-                list.add(msg);
+                list.add(buildMessageMap(rs));
             }
             System.out.println("[MessageServlet] getSentMessages 返回: " + list.size() + "条");
             ResponseUtil.success(resp, list);
@@ -255,10 +234,12 @@ public class MessageServlet extends HttpServlet {
         try {
             conn = DbUtil.getConnection();
             String sql = "SELECT m.*, u_sender.username as sender_username, u_sender.nickname as sender_nickname, u_sender.avatar as sender_avatar, " +
-                    "u_receiver.username as receiver_username, u_receiver.nickname as receiver_nickname, u_receiver.avatar as receiver_avatar " +
+                    "u_receiver.username as receiver_username, u_receiver.nickname as receiver_nickname, u_receiver.avatar as receiver_avatar, " +
+                    "i.title as item_title " +
                     "FROM messages m " +
                     "JOIN users u_sender ON m.sender_id = u_sender.id " +
                     "JOIN users u_receiver ON m.receiver_id = u_receiver.id " +
+                    "LEFT JOIN items i ON m.item_id = i.id " +
                     "WHERE m.sender_id = ? OR m.receiver_id = ? " +
                     "ORDER BY m.created_at DESC LIMIT 100";
             ps = conn.prepareStatement(sql);
@@ -268,21 +249,7 @@ public class MessageServlet extends HttpServlet {
 
             List<Map<String, Object>> list = new ArrayList<>();
             while (rs.next()) {
-                Map<String, Object> msg = new HashMap<>();
-                msg.put("id", rs.getInt("id"));
-                msg.put("sender_id", rs.getInt("sender_id"));
-                msg.put("receiver_id", rs.getInt("receiver_id"));
-                msg.put("item_id", rs.getInt("item_id"));
-                msg.put("content", rs.getString("content"));
-                msg.put("is_read", rs.getInt("is_read"));
-                msg.put("created_at", rs.getString("created_at"));
-                msg.put("sender_username", rs.getString("sender_username"));
-                msg.put("sender_nickname", rs.getString("sender_nickname"));
-                msg.put("sender_avatar", rs.getString("sender_avatar"));
-                msg.put("receiver_username", rs.getString("receiver_username"));
-                msg.put("receiver_nickname", rs.getString("receiver_nickname"));
-                msg.put("receiver_avatar", rs.getString("receiver_avatar"));
-                list.add(msg);
+                list.add(buildMessageMap(rs));
             }
             System.out.println("[MessageServlet] getMessages 返回: " + list.size() + "条");
             ResponseUtil.success(resp, list);
@@ -309,22 +276,30 @@ public class MessageServlet extends HttpServlet {
         }
 
         Map<String, Object> body = JsonUtil.toMap(readBody(req));
-        Integer receiverId = ((Double) body.get("receiver_id")).intValue();
-        Integer itemId = body.get("item_id") != null ? ((Double) body.get("item_id")).intValue() : null;
+        // 兼容驼峰和下划线命名
+        Object receiverIdObj = body.get("receiverId");
+        if (receiverIdObj == null) receiverIdObj = body.get("receiver_id");
+        Integer receiverId = receiverIdObj != null ? ((Number) receiverIdObj).intValue() : null;
+        
+        Object itemIdObj = body.get("itemId");
+        if (itemIdObj == null) itemIdObj = body.get("item_id");
+        Integer itemId = itemIdObj != null ? ((Number) itemIdObj).intValue() : null;
+        
         String content = (String) body.get("content");
         System.out.println("[MessageServlet] sendMessage - senderId=" + senderId + ", receiverId=" + receiverId + ", itemId=" + itemId);
 
-        if (receiverId == null || content == null) {
+        if (receiverId == null || content == null || content.trim().isEmpty()) {
             ResponseUtil.error(resp, 400, "接收者和内容不能为空");
             return;
         }
 
         Connection conn = null;
         PreparedStatement ps = null;
+        ResultSet rs = null;
         try {
             conn = DbUtil.getConnection();
             String sql = "INSERT INTO messages (sender_id, receiver_id, item_id, content, is_read, created_at) VALUES (?, ?, ?, ?, 0, NOW())";
-            ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setInt(1, senderId);
             ps.setInt(2, receiverId);
             if (itemId != null) {
@@ -332,16 +307,44 @@ public class MessageServlet extends HttpServlet {
             } else {
                 ps.setNull(3, Types.INTEGER);
             }
-            ps.setString(4, content);
+            ps.setString(4, content.trim());
             ps.executeUpdate();
 
-            System.out.println("[MessageServlet] sendMessage 成功");
-            ResponseUtil.success(resp);
+            // 获取自增ID
+            rs = ps.getGeneratedKeys();
+            int newId = 0;
+            if (rs.next()) {
+                newId = rs.getInt(1);
+            }
+            DbUtil.close(null, ps, rs);
+
+            // 查询新建的消息详情返回给前端
+            String querySql = "SELECT m.*, " +
+                    "u_sender.username as sender_username, u_sender.nickname as sender_nickname, u_sender.avatar as sender_avatar, " +
+                    "u_receiver.username as receiver_username, u_receiver.nickname as receiver_nickname, u_receiver.avatar as receiver_avatar, " +
+                    "i.title as item_title " +
+                    "FROM messages m " +
+                    "JOIN users u_sender ON m.sender_id = u_sender.id " +
+                    "JOIN users u_receiver ON m.receiver_id = u_receiver.id " +
+                    "LEFT JOIN items i ON m.item_id = i.id " +
+                    "WHERE m.id = ?";
+            ps = conn.prepareStatement(querySql);
+            ps.setInt(1, newId);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Map<String, Object> msg = buildMessageMap(rs);
+                System.out.println("[MessageServlet] sendMessage 成功, 返回消息 id=" + newId);
+                ResponseUtil.success(resp, msg);
+            } else {
+                System.out.println("[MessageServlet] sendMessage 成功但查询失败");
+                ResponseUtil.success(resp);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             ResponseUtil.error(resp, 500, "发送消息失败");
         } finally {
-            DbUtil.close(conn, ps);
+            DbUtil.close(conn, ps, rs);
         }
     }
 
@@ -467,6 +470,28 @@ public class MessageServlet extends HttpServlet {
         } finally {
             DbUtil.close(conn, ps, rs);
         }
+    }
+
+    // ==================== 构建驼峰命名的消息Map ====================
+    private Map<String, Object> buildMessageMap(ResultSet rs) throws SQLException {
+        Map<String, Object> msg = new HashMap<>();
+        msg.put("id", rs.getInt("id"));
+        msg.put("senderId", rs.getInt("sender_id"));
+        msg.put("receiverId", rs.getInt("receiver_id"));
+        msg.put("itemId", rs.getInt("item_id"));
+        msg.put("content", rs.getString("content"));
+        msg.put("isRead", rs.getInt("is_read"));
+        msg.put("createdAt", rs.getString("created_at"));
+        
+        try { msg.put("senderName", rs.getString("sender_nickname") != null ? rs.getString("sender_nickname") : rs.getString("sender_username")); } catch (Exception e) { msg.put("senderName", rs.getString("sender_username")); }
+        try { msg.put("senderUsername", rs.getString("sender_username")); } catch (Exception e) {}
+        try { msg.put("senderAvatar", rs.getString("sender_avatar")); } catch (Exception e) {}
+        try { msg.put("receiverName", rs.getString("receiver_nickname") != null ? rs.getString("receiver_nickname") : rs.getString("receiver_username")); } catch (Exception e) { msg.put("receiverName", rs.getString("receiver_username")); }
+        try { msg.put("receiverUsername", rs.getString("receiver_username")); } catch (Exception e) {}
+        try { msg.put("receiverAvatar", rs.getString("receiver_avatar")); } catch (Exception e) {}
+        try { msg.put("itemTitle", rs.getString("item_title")); } catch (Exception e) {}
+        
+        return msg;
     }
 
     private String readBody(HttpServletRequest req) throws IOException {

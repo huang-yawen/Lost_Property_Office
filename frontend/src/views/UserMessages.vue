@@ -315,24 +315,34 @@ function buildConversations(messages) {
     const convMap = new Map()
 
     messages.forEach(msg => {
+        // 兼容新旧字段名
+        const senderId = msg.senderId ?? msg.sender_id
+        const receiverId = msg.receiverId ?? msg.receiver_id
+        const senderName = msg.senderName ?? msg.sender_nickname ?? msg.sender_username
+        const receiverName = msg.receiverName ?? msg.receiver_nickname ?? msg.receiver_username
+        const itemId = msg.itemId ?? msg.item_id
+        const itemTitle = msg.itemTitle ?? msg.item_title ?? '物品'
+        const isReadVal = msg.isRead ?? msg.is_read
+        const createdAt = msg.createdAt ?? msg.created_at
+
         // 确定对方信息
-        const isReceived = msg.receiverId === currentUserId.value
-        const otherId = isReceived ? msg.senderId : msg.receiverId
-        const otherName = isReceived ? msg.senderName : msg.receiverName
+        const isReceived = receiverId === currentUserId.value
+        const otherId = isReceived ? senderId : receiverId
+        const otherName = isReceived ? senderName : receiverName
 
         // 用 itemId + otherId 作为会话唯一标识
-        const convKey = `${msg.itemId}_${otherId}`
+        const convKey = `${itemId}_${otherId}`
 
         if (!convMap.has(convKey)) {
             convMap.set(convKey, {
                 id: convKey,
-                itemId: msg.itemId,
-                itemTitle: msg.itemTitle || '物品',
+                itemId,
+                itemTitle,
                 otherId,
                 otherName,
                 lastContent: msg.content,
-                lastTime: msg.createdAt,
-                unread: (!msg.isRead && isReceived) ? 1 : 0,
+                lastTime: createdAt,
+                unread: (!isReadVal && isReceived) ? 1 : 0,
                 messages: []
             })
         }
@@ -341,13 +351,13 @@ function buildConversations(messages) {
         conv.messages.push(msg)
 
         // 更新最新消息
-        if (new Date(msg.createdAt) > new Date(conv.lastTime)) {
+        if (createdAt && new Date(createdAt) > new Date(conv.lastTime)) {
             conv.lastContent = msg.content
-            conv.lastTime = msg.createdAt
+            conv.lastTime = createdAt
         }
 
         // 统计未读
-        if (!msg.isRead && isReceived) {
+        if (!isReadVal && isReceived) {
             conv.unread++
         }
     })
@@ -378,7 +388,10 @@ async function fetchAllMessages() {
         conversations.value = buildConversations(allMessages.value)
 
         // 计算总未读
-        totalUnread.value = received.filter(m => !m.isRead).length
+        totalUnread.value = received.filter(m => {
+            const isRead = m.isRead ?? m.is_read ?? 0
+            return !isRead
+        }).length
     } catch (error) {
         console.error('获取消息失败:', error)
         ElMessage.error('获取消息列表失败')
@@ -391,16 +404,25 @@ async function selectConversation(conv) {
     selectedConversation.value = conv
 
     // 获取该会话的完整消息（按时间排序）
-    const itemMessages = allMessages.value.filter(m =>
-        m.itemId === conv.itemId &&
-        (m.senderId === conv.otherId || m.receiverId === conv.otherId)
-    )
-    chatMessages.value = itemMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    const itemMessages = allMessages.value.filter(m => {
+        const mItemId = m.itemId ?? m.item_id
+        const mSenderId = m.senderId ?? m.sender_id
+        const mReceiverId = m.receiverId ?? m.receiver_id
+        return mItemId === conv.itemId &&
+            (mSenderId === conv.otherId || mReceiverId === conv.otherId)
+    })
+    chatMessages.value = itemMessages.sort((a, b) => {
+        const aTime = a.createdAt ?? a.created_at ?? ''
+        const bTime = b.createdAt ?? b.created_at ?? ''
+        return new Date(aTime) - new Date(bTime)
+    })
 
     // 标记该会话的所有未读消息为已读
-    const unreadMessages = chatMessages.value.filter(
-        m => !m.isRead && m.receiverId === currentUserId.value
-    )
+    const unreadMessages = chatMessages.value.filter(m => {
+        const isRead = m.isRead ?? m.is_read ?? 0
+        const receiverId = m.receiverId ?? m.receiver_id
+        return !isRead && receiverId === currentUserId.value
+    })
     for (const msg of unreadMessages) {
         try {
             await messageApi.markRead(msg.id)

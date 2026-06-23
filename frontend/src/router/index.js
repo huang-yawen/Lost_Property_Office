@@ -22,12 +22,6 @@ const routes = [
     },
     {
         path: '/create',
-        name: 'PublishSelect',
-        component: () => import('../views/PublishSelect.vue'),
-        meta: { title: '发布信息', requiresAuth: true }
-    },
-    {
-        path: '/create/form',
         name: 'PublishForm',
         component: () => import('../views/PublishForm.vue'),
         meta: { title: '发布信息', requiresAuth: true }

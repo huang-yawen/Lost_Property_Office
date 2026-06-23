@@ -9,16 +9,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0bf715f8-7bf3-48df-8ea2-bcf584789dcd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../frontend/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/vite.config.js" afterDir="false" />
-    </list>
+    <list default="true" id="0bf715f8-7bf3-48df-8ea2-bcf584789dcd" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="LogFilters">
     <option name="FILTER_ERRORS" value="false" />
@@ -44,7 +42,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "Tomcat Server.Tomcat 10.1.521.executor": "Run",
-    "git-widget-placeholder": "<unknown>",
+    "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/apache-tomcat-10.1.52/lib/servlet-api.jar",
@@ -169,6 +167,7 @@
       <workItem from="1781681214247" duration="1812000" />
       <workItem from="1781683061584" duration="271000" />
       <workItem from="1781683380902" duration="5531000" />
+      <workItem from="1782183030918" duration="1879000" />
     </task>
     <servers />
   </component>

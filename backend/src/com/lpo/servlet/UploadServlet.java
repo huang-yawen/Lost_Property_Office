@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -41,24 +40,35 @@ public class UploadServlet extends HttpServlet {
             System.out.println("[UploadServlet] 原始文件名: " + submittedFileName + ", 文件大小: " + filePart.getSize());
 
             // 生成唯一文件名
-            String ext = "";
+            String ext = ".jpg";
             if (submittedFileName != null && submittedFileName.contains(".")) {
                 ext = submittedFileName.substring(submittedFileName.lastIndexOf("."));
             }
             String fileName = UUID.randomUUID().toString() + ext;
             
-            // 获取上传目录（在项目根目录下创建 uploads 文件夹）
-            String uploadPath = getServletContext().getRealPath("/") + "uploads";
-            File uploadDir = new File(uploadPath);
+            // 确定上传目录：优先使用 web/uploads，否则使用系统临时目录
+            String webRoot = getServletContext().getRealPath("/");
+            System.out.println("[UploadServlet] webRoot: " + webRoot);
+            
+            File uploadDir;
+            if (webRoot != null) {
+                uploadDir = new File(webRoot, "uploads");
+            } else {
+                // 降级：使用 java.io.tmpdir + 项目名
+                String tmpDir = System.getProperty("java.io.tmpdir");
+                uploadDir = new File(tmpDir, "lpo_uploads");
+                System.out.println("[UploadServlet] getRealPath返回null，使用临时目录: " + uploadDir.getAbsolutePath());
+            }
+            
             if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-                System.out.println("[UploadServlet] 创建上传目录: " + uploadPath);
+                boolean created = uploadDir.mkdirs();
+                System.out.println("[UploadServlet] 创建上传目录: " + uploadDir.getAbsolutePath() + " → " + (created ? "成功" : "失败"));
             }
 
             // 保存文件
-            String filePath = uploadPath + File.separator + fileName;
-            filePart.write(filePath);
-            System.out.println("[UploadServlet] 文件保存成功: " + filePath);
+            File destFile = new File(uploadDir, fileName);
+            filePart.write(destFile.getAbsolutePath());
+            System.out.println("[UploadServlet] 文件保存成功: " + destFile.getAbsolutePath());
 
             // 返回文件访问URL
             String fileUrl = "/uploads/" + fileName;

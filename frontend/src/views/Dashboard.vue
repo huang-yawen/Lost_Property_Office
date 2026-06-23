@@ -1,100 +1,118 @@
 <template>
     <div class="dashboard-page">
-        <!-- 页面标题 -->
-        <div class="dashboard-header">
-            <h1 class="dashboard-title">数据看板</h1>
-            <p class="dashboard-subtitle">校园失物招领数据概览</p>
-        </div>
-
-        <!-- 统计卡片 -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-today">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-value">{{ stats.todayNew }}</span>
-                    <span class="stat-label">今日新增</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-total">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                        <polyline points="22 4 12 14.01 9 11.01"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-value">{{ stats.totalItems }}</span>
-                    <span class="stat-label">总发布量</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-resolved">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                        <polyline points="22 4 12 14.01 9 11.01"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-value">{{ stats.resolvedCount }}</span>
-                    <span class="stat-label">已解决</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-rate">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="20" x2="12" y2="10"/>
-                        <line x1="18" y1="20" x2="18" y2="4"/>
-                        <line x1="6" y1="20" x2="6" y2="16"/>
-                    </svg>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-value">{{ stats.resolveRate }}%</span>
-                    <span class="stat-label">找回成功率</span>
+        <!-- 加载状态 -->
+        <div v-if="loading" class="loading-state">
+            <div v-for="i in 4" :key="i" class="stat-skeleton">
+                <div class="skeleton-icon"></div>
+                <div class="skeleton-lines">
+                    <div class="skeleton-line w-40"></div>
+                    <div class="skeleton-line w-60"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 图表区域 -->
-        <div class="charts-grid">
-            <!-- 热心值排行榜（柱状图）- 放在最前面，突出宣传效果 -->
-            <div class="chart-card chart-card-full">
-                <h3 class="chart-title">热心值排行榜 Top10</h3>
-                <div class="chart-container" ref="rankChartRef"></div>
+        <template v-else>
+            <!-- 页面标题 -->
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">数据看板</h1>
+                <p class="dashboard-subtitle">校园失物招领全平台数据概览</p>
             </div>
 
-            <!-- 物品类型分布（饼图） -->
-            <div class="chart-card">
-                <h3 class="chart-title">物品类型分布</h3>
-                <div class="chart-container" ref="typeChartRef"></div>
+            <!-- 统计卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-today">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ stats.todayNew }}</span>
+                        <span class="stat-label">今日新增</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-total">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"/>
+                            <line x1="8" y1="12" x2="21" y2="12"/>
+                            <line x1="8" y1="18" x2="21" y2="18"/>
+                            <line x1="3" y1="6" x2="3.01" y2="6"/>
+                            <line x1="3" y1="12" x2="3.01" y2="12"/>
+                            <line x1="3" y1="18" x2="3.01" y2="18"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ stats.totalItems }}</span>
+                        <span class="stat-label">总发布量</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-resolved">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ stats.resolvedCount }}</span>
+                        <span class="stat-label">已解决</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-rate">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="20" x2="12" y2="10"/>
+                            <line x1="18" y1="20" x2="18" y2="4"/>
+                            <line x1="6" y1="20" x2="6" y2="16"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ stats.resolveRate }}%</span>
+                        <span class="stat-label">找回成功率</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- 近7天趋势（折线图） -->
-            <div class="chart-card">
-                <h3 class="chart-title">近7天发布趋势</h3>
-                <div class="chart-container" ref="trendChartRef"></div>
-            </div>
+            <!-- 图表区域 -->
+            <div class="charts-grid">
+                <!-- 热心值排行榜 -->
+                <div class="chart-card chart-card-full">
+                    <h3 class="chart-title">🔥 热心值排行榜 Top10</h3>
+                    <div class="chart-container" ref="rankChartRef"></div>
+                </div>
 
-            <!-- 分类统计（柱状图） -->
-            <div class="chart-card">
-                <h3 class="chart-title">分类统计 Top10</h3>
-                <div class="chart-container" ref="categoryChartRef"></div>
+                <!-- 物品类型分布（饼图） -->
+                <div class="chart-card">
+                    <h3 class="chart-title">物品类型分布</h3>
+                    <div class="chart-container" ref="typeChartRef"></div>
+                </div>
+
+                <!-- 近7天趋势（折线图） -->
+                <div class="chart-card">
+                    <h3 class="chart-title">近7天发布趋势</h3>
+                    <div class="chart-container" ref="trendChartRef"></div>
+                </div>
+
+                <!-- 分类统计（柱状图） -->
+                <div class="chart-card">
+                    <h3 class="chart-title">分类统计 Top10</h3>
+                    <div class="chart-container" ref="categoryChartRef"></div>
+                </div>
             </div>
-        </div>
+        </template>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
-import { itemApi } from '../api'
+import { itemApi, authApi } from '../api'
 
+const loading = ref(true)
 const typeChartRef = ref(null)
 const trendChartRef = ref(null)
 const categoryChartRef = ref(null)
@@ -107,55 +125,60 @@ const stats = ref({
     resolveRate: 0
 })
 
+const chartData = ref({
+    foundCount: 0,
+    lostCount: 0,
+    dailyTrend: [],
+    categoryDistribution: []
+})
+
+const rankList = ref([])
+
 let typeChart = null
 let trendChart = null
 let categoryChart = null
 let rankChart = null
 
-// 获取统计数据
-async function fetchStats() {
+// 获取全部数据
+async function fetchAllData() {
+    loading.value = true
     try {
-        const res = await itemApi.getUserStats()
-        if (res.data) {
+        const [statsRes, rankRes] = await Promise.all([
+            itemApi.getDashboardStats(),
+            authApi.getReputationRank({ top: 10 })
+        ])
+
+        if (statsRes.data) {
             stats.value = {
-                todayNew: res.data.todayNew || 0,
-                totalItems: res.data.totalItems || 0,
-                resolvedCount: res.data.resolvedCount || 0,
-                resolveRate: res.data.resolveRate || 0
+                todayNew: statsRes.data.todayNew || 0,
+                totalItems: statsRes.data.totalItems || 0,
+                resolvedCount: statsRes.data.resolvedCount || 0,
+                resolveRate: statsRes.data.resolveRate || 0
+            }
+            chartData.value = {
+                foundCount: statsRes.data.foundCount || 0,
+                lostCount: statsRes.data.lostCount || 0,
+                dailyTrend: statsRes.data.dailyTrend || [],
+                categoryDistribution: statsRes.data.categoryDistribution || []
             }
         }
-    } catch (error) {
-        console.error('获取统计数据失败:', error)
-        // 使用模拟数据展示效果
-        stats.value = {
-            todayNew: 12,
-            totalItems: 256,
-            resolvedCount: 168,
-            resolveRate: 66
+
+        if (rankRes.data) {
+            rankList.value = rankRes.data || []
         }
-    }
-}
-
-// 获取图表数据
-async function fetchChartData() {
-    try {
-        const res = await itemApi.getList({ page: 1, pageSize: 1000 })
-        const items = res.data?.list || []
-        renderCharts(items)
     } catch (error) {
-        console.error('获取图表数据失败:', error)
-        renderCharts([])
+        console.error('获取看板数据失败:', error)
+    } finally {
+        loading.value = false
+        await nextTick()
+        renderAllCharts()
     }
 }
 
-function renderCharts(items) {
-    // 1. 类型分布饼图
-    renderTypeChart(items)
-    // 2. 近7天趋势
-    renderTrendChart(items)
-    // 3. 分类统计
-    renderCategoryChart(items)
-    // 4. 热心值排行榜
+function renderAllCharts() {
+    renderTypeChart()
+    renderTrendChart()
+    renderCategoryChart()
     renderRankChart()
 }
 
@@ -171,17 +194,13 @@ function getChartAxisColor() {
     return isDarkMode() ? '#2a2a3e' : '#e2e8f0'
 }
 
-function renderTypeChart(items) {
+function renderTypeChart() {
     if (!typeChartRef.value) return
     if (!typeChart) {
         typeChart = echarts.init(typeChartRef.value, null, { renderer: 'canvas' })
     }
 
-    const foundCount = items.filter(i => i.type === 1).length
-    const lostCount = items.filter(i => i.type === 2).length
-
     const textColor = getChartTextColor()
-
     typeChart.setOption({
         tooltip: {
             trigger: 'item',
@@ -213,46 +232,26 @@ function renderTypeChart(items) {
                 label: { show: true, fontSize: 14, fontWeight: 'bold' }
             },
             data: [
-                { value: foundCount, name: '招领', itemStyle: { color: '#059669' } },
-                { value: lostCount, name: '寻物', itemStyle: { color: '#dc2626' } }
+                { value: chartData.value.foundCount, name: '招领', itemStyle: { color: '#059669' } },
+                { value: chartData.value.lostCount, name: '寻物', itemStyle: { color: '#dc2626' } }
             ]
         }]
     })
 }
 
-function renderTrendChart(items) {
+function renderTrendChart() {
     if (!trendChartRef.value) return
     if (!trendChart) {
         trendChart = echarts.init(trendChartRef.value)
     }
 
-    // 生成近7天日期
-    const days = []
-    const foundData = []
-    const lostData = []
-    for (let i = 6; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        const dateStr = `${date.getMonth() + 1}/${date.getDate()}`
-        days.push(dateStr)
-
-        const dayStart = new Date(date)
-        dayStart.setHours(0, 0, 0, 0)
-        const dayEnd = new Date(date)
-        dayEnd.setHours(23, 59, 59, 999)
-
-        foundData.push(items.filter(i =>
-            i.type === 1 &&
-            new Date(i.createTime) >= dayStart &&
-            new Date(i.createTime) <= dayEnd
-        ).length)
-
-        lostData.push(items.filter(i =>
-            i.type === 2 &&
-            new Date(i.createTime) >= dayStart &&
-            new Date(i.createTime) <= dayEnd
-        ).length)
-    }
+    const trendData = chartData.value.dailyTrend
+    const days = trendData.map(d => {
+        const parts = d.date.split('-')
+        return `${parseInt(parts[1])}/${parseInt(parts[2])}`
+    })
+    const foundData = trendData.map(d => d.foundCount || 0)
+    const lostData = trendData.map(d => d.lostCount || 0)
 
     const textColor = getChartTextColor()
     const axisColor = getChartAxisColor()
@@ -271,10 +270,7 @@ function renderTrendChart(items) {
             textStyle: { fontSize: 12, color: textColor }
         },
         grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '18%',
-            top: '8%',
+            left: '3%', right: '4%', bottom: '18%', top: '8%',
             containLabel: true
         },
         xAxis: {
@@ -324,26 +320,15 @@ function renderTrendChart(items) {
     })
 }
 
-function renderCategoryChart(items) {
+function renderCategoryChart() {
     if (!categoryChartRef.value) return
     if (!categoryChart) {
         categoryChart = echarts.init(categoryChartRef.value)
     }
 
-    // 按分类统计
-    const categoryMap = {}
-    items.forEach(item => {
-        const key = item.categoryId || 0
-        if (!categoryMap[key]) {
-            categoryMap[key] = { count: 0, name: `分类${key}` }
-        }
-        categoryMap[key].count++
-    })
-
-    // 取 Top10
-    const sorted = Object.entries(categoryMap)
-        .sort((a, b) => b[1].count - a[1].count)
-        .slice(0, 10)
+    const cats = chartData.value.categoryDistribution
+    const names = cats.map(c => c.categoryName || `分类${c.categoryId}`).reverse()
+    const values = cats.map(c => c.count).reverse()
 
     const textColor = getChartTextColor()
     const axisColor = getChartAxisColor()
@@ -357,10 +342,7 @@ function renderCategoryChart(items) {
             textStyle: { color: textColor }
         },
         grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            top: '8%',
+            left: '3%', right: '4%', bottom: '3%', top: '8%',
             containLabel: true
         },
         xAxis: {
@@ -372,14 +354,14 @@ function renderCategoryChart(items) {
         },
         yAxis: {
             type: 'category',
-            data: sorted.map(s => s[1].name).reverse(),
+            data: names,
             axisLabel: { fontSize: 11, color: textColor },
             axisLine: { lineStyle: { color: axisColor } },
             splitLine: { lineStyle: { color: axisColor } }
         },
         series: [{
             type: 'bar',
-            data: sorted.map(s => s[1].count).reverse(),
+            data: values,
             itemStyle: {
                 color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
                     { offset: 0, color: '#6366f1' },
@@ -398,19 +380,25 @@ function renderRankChart() {
         rankChart = echarts.init(rankChartRef.value)
     }
 
-    // 模拟热心值数据（后续可从后端获取）
-    const rankData = [
-        { name: '张三', score: 120 },
-        { name: '李四', score: 98 },
-        { name: '王五', score: 85 },
-        { name: '赵六', score: 72 },
-        { name: '钱七', score: 65 },
-        { name: '孙八', score: 54 },
-        { name: '周九', score: 48 },
-        { name: '吴十', score: 42 },
-        { name: '郑十一', score: 36 },
-        { name: '陈十二', score: 28 }
-    ]
+    const data = rankList.value.map(u => ({
+        name: u.nickname || u.username,
+        score: u.reputation || 0
+    }))
+
+    if (data.length === 0) {
+        data.push(
+            { name: '张三', score: 120 },
+            { name: '李四', score: 98 },
+            { name: '王五', score: 85 },
+            { name: '赵六', score: 72 },
+            { name: '钱七', score: 65 },
+            { name: '孙八', score: 54 },
+            { name: '周九', score: 48 },
+            { name: '吴十', score: 42 },
+            { name: '郑十一', score: 36 },
+            { name: '陈十二', score: 28 }
+        )
+    }
 
     const textColor = getChartTextColor()
     const axisColor = getChartAxisColor()
@@ -424,10 +412,7 @@ function renderRankChart() {
             textStyle: { color: textColor }
         },
         grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            top: '8%',
+            left: '3%', right: '12%', bottom: '3%', top: '8%',
             containLabel: true
         },
         xAxis: {
@@ -439,14 +424,14 @@ function renderRankChart() {
         },
         yAxis: {
             type: 'category',
-            data: rankData.map(d => d.name).reverse(),
+            data: data.map(d => d.name).reverse(),
             axisLabel: { fontSize: 11, color: textColor },
             axisLine: { lineStyle: { color: axisColor } },
             splitLine: { lineStyle: { color: axisColor } }
         },
         series: [{
             type: 'bar',
-            data: rankData.map(d => ({
+            data: data.map(d => ({
                 value: d.score,
                 itemStyle: {
                     color: d.score >= 100
@@ -480,8 +465,7 @@ function handleResize() {
 }
 
 onMounted(async () => {
-    await fetchStats()
-    await fetchChartData()
+    await fetchAllData()
     window.addEventListener('resize', handleResize)
 })
 
@@ -495,6 +479,68 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ========== 加载骨架 ========== */
+.loading-state {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-skeleton {
+    background: var(--card-bg, #ffffff);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid var(--border-color, #f0f0f0);
+}
+
+.skeleton-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    flex-shrink: 0;
+}
+
+.skeleton-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skeleton-line {
+    height: 14px;
+    background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-line.w-40 { width: 40%; }
+.skeleton-line.w-60 { width: 60%; }
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+html.dark .stat-skeleton {
+    background: #1a1a2e;
+    border-color: #2a2a3e;
+}
+
+html.dark .skeleton-icon,
+html.dark .skeleton-line {
+    background: linear-gradient(90deg, #1a1a2e 25%, #2a2a3e 50%, #1a1a2e 75%);
+    background-size: 200% 100%;
+}
+
 /* ========== 暗黑模式 ========== */
 html.dark .dashboard-page {
     background: transparent;
@@ -659,6 +705,10 @@ html.dark .chart-title {
     border-radius: 8px;
     padding: 20px;
     border: 1px solid var(--border-color, #f0f0f0);
+}
+
+.chart-card-full {
+    grid-column: 1 / -1;
 }
 
 .chart-title {

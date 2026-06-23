@@ -21,6 +21,8 @@ public class ItemServlet extends HttpServlet {
         try {
             if (pathInfo.matches("/\\d+")) {
                 getItemDetail(req, resp);
+    } else if (pathInfo.equals("/dashboard/stats")) {
+                getDashboardStats(req, resp);
             } else if (pathInfo.equals("/user/stats")) {
                 getUserStats(req, resp);
             } else if (pathInfo.equals("/user")) {
@@ -708,6 +710,126 @@ public class ItemServlet extends HttpServlet {
             e.printStackTrace();
             System.out.println("[ItemServlet] 搜索异常: " + e.getMessage());
             ResponseUtil.error(resp, 500, "搜索失败");
+        } finally {
+            DbUtil.close(conn, ps, rs);
+        }
+    }
+
+    // ==================== 全局看板统计 ====================
+    private void getDashboardStats(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        System.out.println("[ItemServlet] 获取全局看板统计");
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DbUtil.getConnection();
+            Map<String, Object> data = new HashMap<>();
+
+            // 1. 统计卡片: 总发布量、已解决数
+            String cardSql = "SELECT " +
+                    "COUNT(*) as totalItems, " +
+                    "SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as resolvedCount, " +
+                    "SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as activeCount, " +
+                    "SUM(CASE WHEN type = 'found' THEN 1 ELSE 0 END) as foundCount, " +
+                    "SUM(CASE WHEN type = 'lost' THEN 1 ELSE 0 END) as lostCount " +
+                    "FROM items WHERE status != 'deleted'";
+            ps = conn.prepareStatement(cardSql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                int totalItems = rs.getInt("totalItems");
+                int resolvedCount = rs.getInt("resolvedCount");
+                int foundCount = rs.getInt("foundCount");
+                int lostCount = rs.getInt("lostCount");
+                data.put("totalItems", totalItems);
+                data.put("resolvedCount", resolvedCount);
+                data.put("resolveRate", totalItems > 0 ? Math.round(resolvedCount * 100.0 / totalItems) : 0);
+                data.put("foundCount", foundCount);
+                data.put("lostCount", lostCount);
+            } else {
+                data.put("totalItems", 0);
+                data.put("resolvedCount", 0);
+                data.put("resolveRate", 0);
+                data.put("foundCount", 0);
+                data.put("lostCount", 0);
+            }
+            DbUtil.close(null, ps, rs);
+
+            // 2. 今日新增
+            String todaySql = "SELECT COUNT(*) as todayNew FROM items WHERE DATE(created_at) = CURDATE() AND status != 'deleted'";
+            ps = conn.prepareStatement(todaySql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                data.put("todayNew", rs.getInt("todayNew"));
+            } else {
+                data.put("todayNew", 0);
+            }
+            DbUtil.close(null, ps, rs);
+
+            // 3. 近7天趋势: 每天新增数(招领/寻物)
+            String trendSql = "SELECT DATE(created_at) as day, type, COUNT(*) as cnt " +
+                    "FROM items WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND status != 'deleted' " +
+                    "GROUP BY DATE(created_at), type ORDER BY day ASC";
+            ps = conn.prepareStatement(trendSql);
+            rs = ps.executeQuery();
+            Map<String, Map<String, Integer>> trendMap = new LinkedHashMap<>();
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            for (int i = 6; i >= 0; i--) {
+                cal.setTime(new java.util.Date());
+                cal.add(java.util.Calendar.DATE, -i);
+                String day = sdf.format(cal.getTime());
+                Map<String, Integer> dayMap = new HashMap<>();
+                dayMap.put("found", 0);
+                dayMap.put("lost", 0);
+                trendMap.put(day, dayMap);
+            }
+            while (rs.next()) {
+                String day = rs.getString("day");
+                String type = rs.getString("type");
+                int cnt = rs.getInt("cnt");
+                if (trendMap.containsKey(day)) {
+                    trendMap.get(day).put(type, cnt);
+                }
+            }
+            DbUtil.close(null, ps, rs);
+
+            List<Map<String, Object>> trendList = new ArrayList<>();
+            for (Map.Entry<String, Map<String, Integer>> entry : trendMap.entrySet()) {
+                Map<String, Object> dayData = new HashMap<>();
+                dayData.put("date", entry.getKey());
+                dayData.put("foundCount", entry.getValue().get("found"));
+                dayData.put("lostCount", entry.getValue().get("lost"));
+                trendList.add(dayData);
+            }
+            data.put("dailyTrend", trendList);
+
+            // 4. 分类统计: JOIN categories 表获取分类名称
+            String catSql = "SELECT i.category, c.name as category_name, COUNT(*) as cnt " +
+                    "FROM items i LEFT JOIN categories c ON i.category = c.id " +
+                    "WHERE i.status != 'deleted' AND i.category IS NOT NULL " +
+                    "GROUP BY i.category, c.name ORDER BY cnt DESC LIMIT 10";
+            ps = conn.prepareStatement(catSql);
+            rs = ps.executeQuery();
+            List<Map<String, Object>> catList = new ArrayList<>();
+            while (rs.next()) {
+                Map<String, Object> catItem = new HashMap<>();
+                catItem.put("categoryId", rs.getString("category"));
+                String catName = rs.getString("category_name");
+                catItem.put("categoryName", catName != null ? catName : ("分类" + rs.getString("category")));
+                catItem.put("count", rs.getInt("cnt"));
+                catList.add(catItem);
+            }
+            data.put("categoryDistribution", catList);
+
+            System.out.println("[ItemServlet] 看板统计完成: totalItems=" + data.get("totalItems") +
+                    ", todayNew=" + data.get("todayNew") + ", trendDays=" + trendList.size() +
+                    ", categoryTypes=" + catList.size());
+            ResponseUtil.success(resp, data);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("[ItemServlet] 看板统计异常: " + e.getMessage());
+            ResponseUtil.error(resp, 500, "获取看板统计失败: " + e.getMessage());
         } finally {
             DbUtil.close(conn, ps, rs);
         }

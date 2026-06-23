@@ -19,8 +19,10 @@ public class AuthServlet extends HttpServlet {
         System.out.println("[AuthServlet] GET request: " + pathInfo);
 
         try {
-            if (pathInfo.equals("/profile")) {
+    if (pathInfo.equals("/profile")) {
                 getProfile(req, resp);
+            } else if (pathInfo.equals("/reputation/rank")) {
+                getReputationRank(req, resp);
             } else if (pathInfo.equals("/users")) {
                 getUsers(req, resp);
             } else if (pathInfo.equals("/certification/list")) {
@@ -476,6 +478,48 @@ public class AuthServlet extends HttpServlet {
             ResponseUtil.error(resp, 500, "审核认证失败");
         } finally {
             DbUtil.close(conn, ps);
+        }
+    }
+
+    // ==================== 热心值排行榜（公开） ====================
+    private void getReputationRank(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        int top = 10;
+        String topStr = req.getParameter("top");
+        if (topStr != null && !topStr.isEmpty()) {
+            try { top = Integer.parseInt(topStr); } catch (NumberFormatException ignored) {}
+        }
+        System.out.println("[AuthServlet] 获取热心值排行榜 - top=" + top);
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DbUtil.getConnection();
+            String sql = "SELECT id, username, nickname, avatar, reputation, campus, is_certified " +
+                    "FROM users ORDER BY reputation DESC LIMIT ?";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, top);
+            rs = ps.executeQuery();
+
+            List<Map<String, Object>> list = new ArrayList<>();
+            while (rs.next()) {
+                Map<String, Object> user = new HashMap<>();
+                user.put("id", rs.getInt("id"));
+                user.put("username", rs.getString("username"));
+                user.put("nickname", rs.getString("nickname"));
+                user.put("avatar", rs.getString("avatar"));
+                user.put("reputation", rs.getInt("reputation"));
+                user.put("campus", rs.getString("campus"));
+                user.put("isCertified", rs.getInt("is_certified"));
+                list.add(user);
+            }
+            System.out.println("[AuthServlet] 热心值排行榜返回: " + list.size() + "条");
+            ResponseUtil.success(resp, list);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            ResponseUtil.error(resp, 500, "获取排行榜失败");
+        } finally {
+            DbUtil.close(conn, ps, rs);
         }
     }
 

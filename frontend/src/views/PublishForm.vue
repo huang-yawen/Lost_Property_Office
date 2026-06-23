@@ -1,6 +1,6 @@
 <template>
     <div class="publish-form-page">
-        <div class="pf-header">
+        <!-- <div class="pf-header">
             <button class="pf-back" @click="goBack">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="19" y1="12" x2="5" y2="12"/>
@@ -9,10 +9,42 @@
                 返回
             </button>
             <h1 class="pf-title">{{ isEdit ? '编辑信息' : typeLabel }}</h1>
-        </div>
+        </div> -->
 
         <div class="pf-body">
             <form class="pf-form" @submit.prevent="handleSubmit">
+                <!-- 信息类型选择 -->
+                <div class="pf-field">
+                    <label class="pf-label">信息类型</label>
+                    <div class="pf-type-toggle">
+                        <button
+                            type="button"
+                            class="pf-type-btn"
+                            :class="{ active: form.type === 2 }"
+                            @click="form.type = 2"
+                        >
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="M21 21l-4.35-4.35"/>
+                                <line x1="8" y1="11" x2="14" y2="11"/>
+                            </svg>
+                            寻物
+                        </button>
+                        <button
+                            type="button"
+                            class="pf-type-btn"
+                            :class="{ active: form.type === 1 }"
+                            @click="form.type = 1"
+                        >
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            招领
+                        </button>
+                    </div>
+                </div>
+
                 <!-- 物品分类 -->
                 <div class="pf-field">
                     <label class="pf-label">物品分类</label>
@@ -263,7 +295,7 @@ function goBack() {
     if (isEdit.value) {
         router.push(`/item/${route.params.id}`)
     } else {
-        router.push('/create')
+        router.push('/')
     }
 }
 
@@ -476,6 +508,24 @@ html.dark .pf-upload-tip {
     color: #6a6a8a;
 }
 
+html.dark .pf-type-btn {
+    background: #22223a;
+    border-color: #2a2a3e;
+    color: #6a6a8a;
+}
+
+html.dark .pf-type-btn:hover {
+    border-color: #6366f1;
+    color: #a5b4fc;
+    background: rgba(99, 102, 241, 0.1);
+}
+
+html.dark .pf-type-btn.active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #fff;
+}
+
 /* ========== 发布表单页 ========== */
 .publish-form-page {
     min-height: 100%;
@@ -537,6 +587,42 @@ html.dark .pf-upload-tip {
     display: flex;
     flex-direction: column;
     gap: 6px;
+}
+
+/* ========== 类型切换按钮 ========== */
+.pf-type-toggle {
+    display: flex;
+    gap: 12px;
+}
+
+.pf-type-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    color: #4a4a6a;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+
+.pf-type-btn:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+    background: #f8f8ff;
+}
+
+.pf-type-btn.active {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 .pf-label {

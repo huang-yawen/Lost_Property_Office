@@ -98,6 +98,10 @@ export const authApi = {
     // 获取用户公开信息
     getUsers(params) {
         return request.get('/auth/users', { params })
+    },
+    // 获取热心值排行榜（公开）
+    getReputationRank(params) {
+        return request.get('/auth/reputation/rank', { params })
     }
 }
 
@@ -134,6 +138,10 @@ export const itemApi = {
     // 获取用户统计
     getUserStats() {
         return request.get('/items/user/stats')
+    },
+    // 获取全局看板统计（公开）
+    getDashboardStats() {
+        return request.get('/items/dashboard/stats')
     },
     // 搜索物品
     search(params) {
