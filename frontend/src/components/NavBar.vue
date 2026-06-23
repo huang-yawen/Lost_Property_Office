@@ -188,12 +188,12 @@ html.dark .nav-item.active {
 }
 
 html.dark .nav-item-create {
-    background: #2e2e4a;
+    background: transparent;
     color: #a5b4fc !important;
 }
 
 html.dark .nav-item-create:hover {
-    background: #3a3a5a;
+    background: #2e2e4a;
     color: #c7d2fe !important;
 }
 
@@ -317,17 +317,17 @@ html.dark .version-text {
 }
 
 .nav-item-create {
-    background: #eef2ff;
+    background: transparent;
     color: #4f46e5 !important;
 }
 
 .nav-item-create:hover {
-    background: #e0e7ff;
+    background: #eef2ff;
     color: #4338ca !important;
 }
 
 .nav-item-create.active {
-    background: #e0e7ff;
+    background: #eef2ff;
     color: #4338ca !important;
 }
 

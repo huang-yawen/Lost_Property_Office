@@ -108,8 +108,9 @@
                     v-for="item in filteredItems"
                     :key="item.id"
                     class="item-card"
+                    @click="openItemDialog(item)"
                 >
-                    <div class="item-image" @click="router.push(`/item/${item.id}`)">
+                    <div class="item-image">
                         <img :src="getFirstImage(item.images)" :alt="item.title" @error="handleImageError" />
                         <div class="item-type-badge" :class="item.type === 1 ? 'badge-found' : 'badge-lost'">
                             {{ item.type === 1 ? '招领' : '寻物' }}
@@ -136,8 +137,8 @@
                             <span class="meta-divider"></span>
                             <span class="meta-time">{{ formatTime(item.createTime) }}</span>
                         </div>
-                        <div class="item-actions">
-                            <button class="action-btn action-edit" @click="router.push(`/edit/${item.id}`)">
+                        <div class="item-actions" @click.stop>
+                            <button class="action-btn action-edit" @click.stop="router.push(`/edit/${item.id}`)">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -155,7 +156,7 @@
                                 </svg>
                                 标记已解决
                             </button>
-                            <button class="action-btn action-delete" @click="handleDelete(item)">
+                            <button class="action-btn action-delete" @click.stop="handleDelete(item)">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="3 6 5 6 21 6"/>
                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -166,6 +167,69 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 物品详情弹窗 -->
+            <el-dialog
+                v-model="itemDialogVisible"
+                :title="dialogItem?.title || '物品详情'"
+                width="700px"
+                destroy-on-close
+                class="item-detail-dialog"
+            >
+                <template v-if="dialogItem">
+                    <div class="dialog-item-detail">
+                        <!-- 图片 -->
+                        <div class="dialog-gallery">
+                            <div class="dialog-gallery-main">
+                                <img :src="getFirstImage(dialogItem.images)" :alt="dialogItem.title" @error="handleImageError" />
+                                <span class="dialog-type-badge" :class="dialogItem.type === 1 ? 'badge-found' : 'badge-lost'">
+                                    {{ dialogItem.type === 1 ? '招领' : '寻物' }}
+                                </span>
+                                <span v-if="dialogItem.status === 2" class="dialog-status-badge">已解决</span>
+                            </div>
+                        </div>
+                        <!-- 信息 -->
+                        <div class="dialog-info">
+                            <div class="dialog-info-header">
+                                <h2>{{ dialogItem.title }}</h2>
+                                <div class="dialog-info-meta">
+                                    <span class="dialog-category">{{ getCategoryName(dialogItem.categoryId) }}</span>
+                                    <span class="dialog-time">{{ formatTime(dialogItem.createTime) }}</span>
+                                </div>
+                            </div>
+                            <div class="dialog-info-body">
+                                <div class="dialog-desc">
+                                    <h4>物品描述</h4>
+                                    <p>{{ dialogItem.description || '暂无描述' }}</p>
+                                </div>
+                                <div class="dialog-detail-items">
+                                    <div class="dialog-detail-item">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        <span>{{ dialogItem.username || '匿名' }}</span>
+                                    </div>
+                                    <div class="dialog-detail-item" v-if="dialogItem.location">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                            <circle cx="12" cy="10" r="3"/>
+                                        </svg>
+                                        <span>{{ dialogItem.location }}</span>
+                                    </div>
+                                    <div class="dialog-detail-item">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                                            <line x1="12" y1="18" x2="12.01" y2="18"/>
+                                        </svg>
+                                        <span>{{ dialogItem.contact || '暂无' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </el-dialog>
         </div>
     </div>
 </template>
@@ -185,6 +249,13 @@ const items = ref([])
 const categories = ref([])
 const currentFilter = ref('all')
 const sortOrder = ref('desc')
+const itemDialogVisible = ref(false)
+const dialogItem = ref(null)
+
+function openItemDialog(item) {
+    dialogItem.value = item
+    itemDialogVisible.value = true
+}
 
 const filteredItems = computed(() => {
     let list = items.value
@@ -781,7 +852,8 @@ html.dark .action-delete:hover {
 
 .item-card {
     display: flex;
-    border-radius: 8px;
+    height: 170px;
+    border-radius: 6px;
     border: 1px solid #e2e8f0;
     overflow: hidden;
     transition: all 0.3s;
@@ -820,7 +892,7 @@ html.dark .action-delete:hover {
     top: 10px;
     left: 10px;
     padding: 4px 12px;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
     color: #fff;
@@ -890,7 +962,7 @@ html.dark .action-delete:hover {
     align-items: center;
     gap: 5px;
     padding: 4px 12px;
-    border-radius: 20px;
+    border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
@@ -933,11 +1005,7 @@ html.dark .action-delete:hover {
     color: #6b7280;
     margin-bottom: 14px;
     line-height: 1.6;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    flex: 1;
+    display: none;
 }
 
 .item-meta {
@@ -1063,6 +1131,196 @@ html.dark .action-delete:hover {
     .item-actions {
         flex-wrap: wrap;
     }
+}
+
+/* ===== 物品详情弹窗 ===== */
+:deep(.item-detail-dialog) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+:deep(.item-detail-dialog .el-dialog) {
+    margin: 0 !important;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+:deep(.item-detail-dialog .el-dialog__header) {
+    display: none;
+}
+
+:deep(.item-detail-dialog .el-dialog__body) {
+    padding: 0;
+}
+
+.dialog-item-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 400px;
+}
+
+.dialog-gallery {
+    position: relative;
+    background: #f0f2f5;
+}
+
+.dialog-gallery-main {
+    position: relative;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e8eaed;
+    overflow: hidden;
+}
+
+.dialog-gallery-main img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.dialog-type-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.dialog-status-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+}
+
+.dialog-info {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dialog-info-header {
+    margin-bottom: 16px;
+}
+
+.dialog-info-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4a4a6a;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.dialog-info-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dialog-category {
+    padding: 3px 8px;
+    background: #eef2ff;
+    color: #4f46e5;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.dialog-time {
+    font-size: 12px;
+    color: #a0aec0;
+}
+
+.dialog-info-body {
+    flex: 1;
+}
+
+.dialog-desc {
+    margin-bottom: 16px;
+}
+
+.dialog-desc h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a4a6a;
+    margin-bottom: 6px;
+}
+
+.dialog-desc p {
+    font-size: 13px;
+    color: #4a5568;
+    line-height: 1.7;
+}
+
+.dialog-detail-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    background: #f7fafc;
+    border-radius: 8px;
+}
+
+.dialog-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #4a5568;
+}
+
+.dialog-detail-item svg {
+    color: #4f46e5;
+    flex-shrink: 0;
+}
+
+html.dark .dialog-gallery,
+html.dark .dialog-gallery-main {
+    background: #0f0f1a;
+}
+
+html.dark .dialog-info-header h2 {
+    color: #e0e0f0;
+}
+
+html.dark .dialog-desc h4 {
+    color: #c8c8d8;
+}
+
+html.dark .dialog-desc p {
+    color: #8a8aa0;
+}
+
+html.dark .dialog-detail-items {
+    background: #0f0f1a;
+}
+
+html.dark .dialog-detail-item {
+    color: #8a8aa0;
+}
+
+html.dark .dialog-detail-item svg {
+    color: #a5b4fc;
+}
+
+html.dark .dialog-category {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+}
+
+html.dark .dialog-time {
+    color: #6a6a8a;
 }
 
 @media (max-width: 480px) {

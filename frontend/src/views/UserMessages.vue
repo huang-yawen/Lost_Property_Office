@@ -94,16 +94,7 @@
                         </button>
                         <div class="chat-header-info">
                             <span class="chat-header-name">{{ selectedConversation.otherName }}</span>
-                            <span class="chat-header-item">关于：{{ selectedConversation.itemTitle }}</span>
                         </div>
-                        <button class="chat-item-btn" @click="goToItem(selectedConversation.itemId)">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                                <polyline points="15 3 21 3 21 9"/>
-                                <line x1="10" y1="14" x2="21" y2="3"/>
-                            </svg>
-                            查看物品
-                        </button>
                     </div>
 
                     <!-- 消息记录 -->
@@ -330,14 +321,12 @@ function buildConversations(messages) {
         const otherId = isReceived ? senderId : receiverId
         const otherName = isReceived ? senderName : receiverName
 
-        // 用 itemId + otherId 作为会话唯一标识
-        const convKey = `${itemId}_${otherId}`
+        // 用 otherId 作为会话唯一标识（同一人的所有对话合并为一个会话）
+        const convKey = `${otherId}`
 
         if (!convMap.has(convKey)) {
             convMap.set(convKey, {
                 id: convKey,
-                itemId,
-                itemTitle,
                 otherId,
                 otherName,
                 lastContent: msg.content,
@@ -403,13 +392,11 @@ async function fetchAllMessages() {
 async function selectConversation(conv) {
     selectedConversation.value = conv
 
-    // 获取该会话的完整消息（按时间排序）
+    // 获取该会话的完整消息（按时间排序，不区分物品）
     const itemMessages = allMessages.value.filter(m => {
-        const mItemId = m.itemId ?? m.item_id
         const mSenderId = m.senderId ?? m.sender_id
         const mReceiverId = m.receiverId ?? m.receiver_id
-        return mItemId === conv.itemId &&
-            (mSenderId === conv.otherId || mReceiverId === conv.otherId)
+        return mSenderId === conv.otherId || mReceiverId === conv.otherId
     })
     chatMessages.value = itemMessages.sort((a, b) => {
         const aTime = a.createdAt ?? a.created_at ?? ''
@@ -455,8 +442,6 @@ async function sendMessage() {
     try {
         const conv = selectedConversation.value
         const res = await messageApi.send({
-            itemId: conv.itemId,
-            itemTitle: conv.itemTitle,
             receiverId: conv.otherId,
             receiverName: conv.otherName,
             content

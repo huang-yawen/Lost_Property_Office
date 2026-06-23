@@ -14,34 +14,27 @@
         <div class="pf-body">
             <form class="pf-form" @submit.prevent="handleSubmit">
                 <!-- 信息类型选择 -->
-                <div class="pf-field">
-                    <label class="pf-label">信息类型</label>
-                    <div class="pf-type-toggle">
-                        <button
-                            type="button"
-                            class="pf-type-btn"
-                            :class="{ active: form.type === 2 }"
-                            @click="form.type = 2"
-                        >
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"/>
-                                <path d="M21 21l-4.35-4.35"/>
-                                <line x1="8" y1="11" x2="14" y2="11"/>
-                            </svg>
+                <div class="pf-field pf-field-row">
+                    <label class="pf-label pf-label-radio">信息类型</label>
+                    <div class="pf-radio-group">
+                        <label class="pf-radio-item">
+                            <input
+                                type="radio"
+                                name="itemType"
+                                :value="2"
+                                v-model.number="form.type"
+                            />
                             寻物
-                        </button>
-                        <button
-                            type="button"
-                            class="pf-type-btn"
-                            :class="{ active: form.type === 1 }"
-                            @click="form.type = 1"
-                        >
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                                <polyline points="22 4 12 14.01 9 11.01"/>
-                            </svg>
+                        </label>
+                        <label class="pf-radio-item">
+                            <input
+                                type="radio"
+                                name="itemType"
+                                :value="1"
+                                v-model.number="form.type"
+                            />
                             招领
-                        </button>
+                        </label>
                     </div>
                 </div>
 
@@ -285,7 +278,10 @@ async function fetchItemDetail() {
 function getFirstImage(images) {
     try {
         const arr = JSON.parse(images)
-        return arr[0] || ''
+        if (!arr || arr.length === 0) return ''
+        const first = arr[0]
+        // 兼容字符串URL和对象格式 { url: "..." }
+        return (typeof first === 'string') ? first : (first?.url || '')
     } catch {
         return ''
     }
@@ -322,7 +318,7 @@ async function handleFileChange(e) {
 
         try {
             const res = await uploadApi.upload(file)
-            const url = res.data
+            const url = (typeof res.data === 'string') ? res.data : (res.data?.url || res.data)
             uploadedUrls.value.push(url)
             imageList.value.push(url)
         } catch (error) {
@@ -508,22 +504,8 @@ html.dark .pf-upload-tip {
     color: #6a6a8a;
 }
 
-html.dark .pf-type-btn {
-    background: #22223a;
-    border-color: #2a2a3e;
-    color: #6a6a8a;
-}
-
-html.dark .pf-type-btn:hover {
-    border-color: #6366f1;
-    color: #a5b4fc;
-    background: rgba(99, 102, 241, 0.1);
-}
-
-html.dark .pf-type-btn.active {
-    background: #6366f1;
-    border-color: #6366f1;
-    color: #fff;
+html.dark .pf-radio-item {
+    color: #c8c8d8;
 }
 
 /* ========== 发布表单页 ========== */
@@ -571,10 +553,10 @@ html.dark .pf-type-btn.active {
 
 .pf-body {
     flex: 1;
-    max-width: 640px;
+    max-width: 780px;
     width: 100%;
     margin: 0 auto;
-    padding: 32px 24px 60px;
+    padding: 28px 20px 50px;
 }
 
 .pf-form {
@@ -589,40 +571,40 @@ html.dark .pf-type-btn.active {
     gap: 6px;
 }
 
-/* ========== 类型切换按钮 ========== */
-.pf-type-toggle {
-    display: flex;
-    gap: 12px;
+/* ========== 同行布局 ========== */
+.pf-field-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
 }
 
-.pf-type-btn {
-    flex: 1;
+.pf-label-radio {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+/* ========== 信息类型 radio 组 ========== */
+.pf-radio-group {
+    display: flex;
+    gap: 24px;
+}
+
+.pf-radio-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 14px 20px;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    background: #fff;
-    font-size: 15px;
-    font-weight: 600;
+    gap: 6px;
+    font-size: 14px;
     color: #4a4a6a;
     cursor: pointer;
-    transition: all 0.25s;
+    user-select: none;
 }
 
-.pf-type-btn:hover {
-    border-color: #4f46e5;
-    color: #4f46e5;
-    background: #f8f8ff;
-}
-
-.pf-type-btn.active {
-    background: #4f46e5;
-    border-color: #4f46e5;
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+.pf-radio-item input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #4f46e5;
+    cursor: pointer;
+    margin: 0;
 }
 
 .pf-label {

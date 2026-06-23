@@ -291,7 +291,8 @@ public class ItemServlet extends HttpServlet {
         String category = body.get("categoryId") != null ? String.valueOf(body.get("categoryId")) : null;
         String location = (String) body.get("location");
         String date = (String) body.get("date");
-        String images = body.get("images") != null ? JsonUtil.toJson(body.get("images")) : null;
+        // images 已经是 JSON 字符串（前端已 JSON.stringify），直接使用
+        String images = (String) body.get("images");
         String contact = (String) body.get("contact");
 
         if (title == null || title.trim().isEmpty()) {
@@ -917,7 +918,18 @@ public class ItemServlet extends HttpServlet {
 
         map.put("location", rs.getString("location"));
         map.put("date", rs.getString("date"));
-        map.put("images", rs.getString("images"));
+        // 修复双重编码问题：旧数据被 JsonUtil.toJson 多包了一层，存储形如 "[\"/uploads/xxx.png\"]"
+        String imagesStr = rs.getString("images");
+        if (imagesStr != null && imagesStr.length() > 2 && imagesStr.startsWith("\"")) {
+            try {
+                Map<String, Object> tempMap = JsonUtil.toMap("{\"inner\":" + imagesStr + "}");
+                Object inner = tempMap.get("inner");
+                if (inner instanceof String && ((String) inner).startsWith("[")) {
+                    imagesStr = (String) inner;
+                }
+            } catch (Exception ignored) {}
+        }
+        map.put("images", imagesStr);
         map.put("contact", rs.getString("contact"));
 
         // status: 数据库存 'active'/'completed'/'deleted'，返回 1(进行中)/2(已解决)

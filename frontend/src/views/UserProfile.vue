@@ -378,7 +378,10 @@ async function fetchStats() {
     try {
         const res = await itemApi.getUserStats()
         if (res.data) {
-            stats.value = res.data
+            stats.value.total = res.data.total || 0
+            stats.value.found = res.data.found_count || 0
+            stats.value.lost = res.data.lost_count || 0
+            stats.value.resolved = res.data.completed_count || 0
         } else {
             const itemsRes = await itemApi.getUserItems()
             const items = itemsRes.data || []
