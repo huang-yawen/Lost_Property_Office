@@ -82,9 +82,6 @@
                     <span>还没有账号？</span>
                     <router-link to="/register" class="auth-link">立即注册</router-link>
                 </div>
-                <div class="auth-footer" style="margin-top: 8px;">
-                    <span>测试账号：admin / admin123（管理员）或 test / 123456（普通用户）</span>
-                </div>
             </div>
         </div>
     </div>
