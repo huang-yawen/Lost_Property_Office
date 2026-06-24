@@ -270,7 +270,7 @@
                 <div class="form-field">
                     <label class="form-label">新密码</label>
                     <el-input v-model="passwordForm.newPassword" type="password" show-password placeholder="请输入新密码（至少6位）" class="form-input" />
-                </div>
+               </div>
                 <div class="form-field">
                     <label class="form-label">确认新密码</label>
                     <el-input v-model="passwordForm.confirmPassword" type="password" show-password placeholder="请再次输入新密码" class="form-input" />
