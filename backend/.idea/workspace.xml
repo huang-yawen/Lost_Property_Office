@@ -9,9 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0bf715f8-7bf3-48df-8ea2-bcf584789dcd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../frontend/src/views/UserProfile.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/views/UserProfile.vue" afterDir="false" />
-    </list>
+    <list default="true" id="0bf715f8-7bf3-48df-8ea2-bcf584789dcd" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -170,7 +168,8 @@
       <workItem from="1781683061584" duration="271000" />
       <workItem from="1781683380902" duration="5531000" />
       <workItem from="1782183030918" duration="4179000" />
-      <workItem from="1782259229573" duration="2222000" />
+      <workItem from="1782259229573" duration="2835000" />
+      <workItem from="1782304255040" duration="1259000" />
     </task>
     <servers />
   </component>

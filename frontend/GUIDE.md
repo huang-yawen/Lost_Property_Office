@@ -13,6 +13,8 @@
 | **Axios** | HTTP 请求客户端 |
 | **Element Plus** | UI 组件库（弹窗、选择器、消息提示等） |
 | **ECharts 5** | 数据可视化图表 |
+| **qrcode** | 二维码生成（分享海报） |
+| **html2canvas** | 海报截图保存与分享 |
 
 ### 目录结构
 
@@ -154,6 +156,47 @@ PublishForm → 上传图片: POST /api/upload (multipart/form-data)
 ### 2.7 暗黑模式
 
 `stores/theme.js` 管理暗黑模式状态，通过给 `<html>` 添加/移除 `dark` class 实现。所有页面通过 `html.dark .xxx` 选择器覆盖暗色样式。
+
+### 2.8 二维码分享海报（创新点✨）
+
+分享海报功能通过 `SharePoster.vue` 组件实现，支持一键生成带二维码的海报并保存/分享，是系统的创新特色功能。
+
+**触发入口**：物品详情页（`ItemDetail.vue`）中的「分享海报」按钮。
+
+**数据流**：
+```
+ItemDetail.vue 点击「分享海报」
+  → SharePoster.vue 接收 item 数据，visible = true
+  → watch visible 触发 generateQRCode()
+  → 动态 import('qrcode') 生成二维码 DataURL
+  → 二维码渲染到海报卡片中
+  → 用户可「保存图片」或「分享」
+```
+
+**二维码生成**（`generateQRCode`）：
+```js
+async function generateQRCode() {
+    const QRCode = (await import('qrcode')).default
+    const url = `${window.location.origin}/#/item/${props.item.id}`
+    qrCodeUrl.value = await QRCode.toDataURL(url, {
+        width: 120, height: 120, margin: 1,
+        color: { dark: '#4a4a6a', light: '#ffffff' }
+    })
+}
+```
+- 动态导入 `qrcode` 库，减少首屏加载体积
+- 生成指向物品详情页的链接二维码：`/item/{id}`
+- 自定义颜色与系统主题色（`#4a4a6a`）一致
+
+**海报保存**（`handleSave`）：使用 `html2canvas` 将海报 DOM 截图 → 生成 PNG 下载
+
+**海报分享**（`handleSharePoster`）：
+- 优先使用 Web Share API (`navigator.share`) 原生分享（含图片文件）
+- 降级方案：自动保存到本地
+
+**依赖库**：
+- `qrcode`：二维码生成
+- `html2canvas`：DOM 截图转图片
 
 ---
 
