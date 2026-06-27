@@ -1,10 +1,7 @@
 <template>
     <div class="admin-users-page">
-        <div class="admin-users-header">
-            <h1>用户列表</h1>
-            <div class="header-info">
-                <span class="user-count">共 {{ list.length }} 个用户</span>
-            </div>
+        <div class="page-header-bar">
+            <h1 class="page-header-title">用户列表</h1>
         </div>
 
         <div class="admin-users-body">
@@ -16,24 +13,20 @@
 
             <!-- 空状态 -->
             <div v-else-if="list.length === 0" class="empty-state">
-                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#c0c4cc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
                 <p>暂无用户数据</p>
             </div>
 
-            <!-- 用户列表 -->
+            <!-- 用户表格 -->
             <div v-else class="users-table-wrapper">
                 <table class="users-table">
                     <thead>
                         <tr>
-                            <th>用户名</th>
-                            <th>校园认证</th>
-                            <th>当前积分</th>
+                            <th>用户</th>
+                            <th>昵称</th>
+                            <th>认证状态</th>
+                            <th>信誉积分</th>
                             <th>注册时间</th>
+                            <th style="width: 100px;">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -41,21 +34,38 @@
                             <td>
                                 <div class="user-cell">
                                     <div class="user-avatar-sm">
-                                        {{ user.username?.charAt(0)?.toUpperCase() || '?' }}
+                                        {{ (user.nickname || user.username || '?').charAt(0).toUpperCase() }}
                                     </div>
                                     <span class="user-name">{{ user.username }}</span>
                                 </div>
                             </td>
+                            <td>{{ user.nickname || '-' }}</td>
                             <td>
-                                <span class="cert-badge" :class="'cert-' + (user.certificationStatus || (user.is_certified ? 'approved' : 'none'))">
-                                    {{ certStatusText(user) }}
+                                <span class="cert-badge" :class="user.is_certified === 1 ? 'cert-approved' : 'cert-none'">
+                                    {{ user.is_certified === 1 ? '已认证' : '未认证' }}
                                 </span>
                             </td>
                             <td>
-                                <span class="points-value">{{ user.points }}</span>
+                                <span class="points-value">{{ user.reputation ?? 0 }}</span>
                             </td>
                             <td>
                                 <span class="time-text">{{ formatTime(user.created_at) }}</span>
+                            </td>
+                            <td>
+                                <button
+                                    v-if="user.is_admin !== 1"
+                                    class="kick-btn"
+                                    @click="handleKick(user)"
+                                    title="踢出该用户"
+                                >
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                        <polyline points="16 17 21 12 16 7"/>
+                                        <line x1="21" y1="12" x2="9" y2="12"/>
+                                    </svg>
+                                    踢出
+                                </button>
+                                <span v-else class="admin-badge">管理员</span>
                             </td>
                         </tr>
                     </tbody>
@@ -67,19 +77,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { adminApi } from '../api'
 
 const list = ref([])
 const loading = ref(false)
-
-function certStatusText(user) {
-    const status = user.certificationStatus
-    if (status === 'approved' || user.is_certified) return '已认证'
-    if (status === 'pending') return '待审核'
-    if (status === 'rejected') return '已拒绝'
-    return '未认证'
-}
 
 function formatTime(time) {
     if (!time) return ''
@@ -106,46 +108,52 @@ async function fetchUsers() {
     }
 }
 
+async function handleKick(user) {
+    try {
+        await ElMessageBox.confirm(
+            `确定要将用户 "${user.nickname || user.username}" 踢出系统？\n\n操作将：\n1. 删除该用户账号\n2. 下架该用户所有发布物品\n3. 删除该用户的消息记录\n\n此操作不可撤销！`,
+            '踢出用户',
+            {
+                confirmButtonText: '确认踢出',
+                cancelButtonText: '取消',
+                type: 'warning',
+                confirmButtonClass: 'el-button--danger'
+            }
+        )
+        await adminApi.deleteUser(user.id)
+        ElMessage.success(`已踢出用户 "${user.nickname || user.username}"`)
+        fetchUsers()
+    } catch (error) {
+        if (error !== 'cancel' && error !== 'close') {
+            console.error('踢出失败:', error)
+            const msg = error?.response?.data?.message || error?.message || '踢出失败，请稍后重试'
+            ElMessage.error(typeof msg === 'string' ? msg : '踢出失败')
+        }
+    }
+}
+
 onMounted(() => {
     fetchUsers()
 })
 </script>
 
 <style scoped>
-.admin-users-page {
-    min-height: 100%;
+/* ========== 页面标题栏 ========== */
+.page-header-bar {
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 20px;
 }
 
-.admin-users-header {
-    padding: 0 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.admin-users-header h1 {
-    font-size: 20px;
+.page-header-title {
+    font-size: 18px;
     font-weight: 700;
     color: #4a4a6a;
     margin: 0;
 }
 
-.header-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.user-count {
-    font-size: 13px;
-    color: #a0aec0;
-    background: #f0f2f5;
-    padding: 4px 12px;
-    border-radius: 6px;
-}
-
-.admin-users-body {
-    /* 全宽显示 */
+.admin-users-page {
+    min-height: 100%;
 }
 
 /* 加载状态 */
@@ -264,16 +272,6 @@ onMounted(() => {
     color: #059669;
 }
 
-.cert-pending {
-    background: #fef3c7;
-    color: #d97706;
-}
-
-.cert-rejected {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
 .cert-none {
     background: #f0f2f5;
     color: #8a8aa0;
@@ -291,14 +289,46 @@ onMounted(() => {
     color: #a0aec0;
 }
 
-/* 暗黑模式 */
-html.dark .admin-users-header h1 {
-    color: #e0e0f0;
+/* 踢出按钮 */
+.kick-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid #fee2e2;
+    background: #fff;
+    color: #dc2626;
+    white-space: nowrap;
 }
 
-html.dark .user-count {
-    background: #2a2a3e;
-    color: #8a8aa0;
+.kick-btn:hover {
+    background: #fee2e2;
+    border-color: #dc2626;
+}
+
+/* 管理员标识 */
+.admin-badge {
+    display: inline-flex;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #eef2ff;
+    color: #4f46e5;
+}
+
+/* 暗黑模式 */
+html.dark .page-header-bar {
+    border-bottom-color: #2a2a3e;
+}
+
+html.dark .page-header-title {
+    color: #e0e0f0;
 }
 
 html.dark .users-table-wrapper {
@@ -331,5 +361,21 @@ html.dark .user-name {
 html.dark .cert-none {
     background: #2a2a3e;
     color: #8a8aa0;
+}
+
+html.dark .kick-btn {
+    background: #1a1a2e;
+    border-color: #3a2a2a;
+    color: #f87171;
+}
+
+html.dark .kick-btn:hover {
+    background: #2a1a1a;
+    border-color: #dc2626;
+}
+
+html.dark .admin-badge {
+    background: #2e2e4a;
+    color: #a5b4fc;
 }
 </style>

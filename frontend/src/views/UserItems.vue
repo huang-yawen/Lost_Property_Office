@@ -1,6 +1,6 @@
 <template>
     <div class="my-items-page">
-        <div class="my-items-container">
+        <div class="my-items-container" style="padding-top: 0px;margin-top: 0px;">
             <!-- 页面头部 + 统计卡片（同一行）- 参考个人中心样式 -->
             <div class="page-header-row">
                 <div class="page-header">
@@ -568,9 +568,9 @@ html.dark .action-delete:hover {
 }
 
 .my-items-container {
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 32px 16px 60px;
+    padding: 32px 0 60px;
 }
 
 /* ===== 页面头部行（标题 + 统计 + 按钮同一行） ===== */

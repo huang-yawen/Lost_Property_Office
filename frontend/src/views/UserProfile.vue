@@ -1,5 +1,5 @@
 <template>
-    <div class="profile-page">
+    <div class="profile-page" style="margin-top: 0px;padding-top: 10px;">
         <!-- 顶部：头像 + 信息 + 统计数据 - 与背景融为一体 -->
         <div class="profile-header">
             <div class="profile-avatar" @click="showAvatarUpload = true">
@@ -654,7 +654,9 @@ html.dark :deep(.el-dialog .el-input__inner:focus) {
 /* ========== 个人中心 ========== */
 .profile-page {
     min-height: 100%;
-    padding: 40px 40px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 0 60px;
     display: flex;
     flex-direction: column;
 }
@@ -664,9 +666,7 @@ html.dark :deep(.el-dialog .el-input__inner:focus) {
     display: flex;
     align-items: center;
     gap: 32px;
-    max-width: 960px;
     width: 100%;
-    margin: 0 auto 0;
     padding: 0 0 24px;
     border-bottom: 1px solid #e2e8f0;
 }
@@ -783,9 +783,7 @@ html.dark :deep(.el-dialog .el-input__inner:focus) {
 
 /* 信誉积分区域 - 与背景融为一体 */
 .reputation-section {
-    max-width: 960px;
     width: 100%;
-    margin: 0 auto;
     padding: 20px 0 24px;
     border-bottom: 1px solid #e2e8f0;
 }
@@ -869,9 +867,7 @@ html.dark :deep(.el-dialog .el-input__inner:focus) {
 
 /* 设置区域 - 与背景融为一体 */
 .settings-section {
-    max-width: 960px;
     width: 100%;
-    margin: 0 auto;
     padding: 24px 0;
 }
 

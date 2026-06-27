@@ -12,7 +12,7 @@
             <div class="auth-card">
                 <div class="auth-header">
                     <h1 class="auth-title">登录</h1>
-                    <p class="auth-desc">使用您的账号登录系统</p>
+                    <p class="auth-desc">使用您的账号密码登录系统</p>
                 </div>
 
                 <form class="auth-form" @submit.prevent="handleLogin">
@@ -92,7 +92,7 @@ import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '../stores/user'
-import { adminApi } from '../api'
+import { authApi } from '../api'
 
 const router = useRouter()
 const route = useRoute()
@@ -114,38 +114,30 @@ async function handleLogin() {
 
     loading.value = true
     try {
-        // 先尝试管理员登录
-        const adminRes = await adminApi.login({
+        // 统一登录请求：后端同时校验普通用户和管理员表
+        const res = await authApi.login({
             username: form.username.trim(),
             password: form.password
         })
-        // 管理员登录成功
-        // 清除普通用户 token，确保互斥
-        localStorage.removeItem('token')
-        localStorage.removeItem('userInfo')
-        // 保存管理员 token
-        localStorage.setItem('admin_token', adminRes.data.token)
-        localStorage.setItem('admin_info', JSON.stringify(adminRes.data.user))
-        ElMessage.success('管理员登录成功')
-        const redirect = route.query.redirect || '/admin/certification'
-        router.push(redirect)
-    } catch (adminError) {
-        // 管理员登录失败，尝试普通用户登录
-        try {
-            // 清除管理员 token，确保互斥
-            localStorage.removeItem('admin_token')
-            localStorage.removeItem('admin_info')
-            await userStore.login({
-                username: form.username.trim(),
-                password: form.password
-            })
+
+        const { token, user } = res.data
+
+        if (user.is_admin === 1) {
+            // ===== 管理员登录 =====
+            userStore.setAdminState(token, user)
+            ElMessage.success('管理员登录成功')
+            const redirect = route.query.redirect || '/admin/certification'
+            router.push(redirect)
+        } else {
+            // ===== 普通用户登录 =====
+            userStore.setLoginState({ token, user })
             ElMessage.success('登录成功')
             const redirect = route.query.redirect || '/'
             router.push(redirect)
-        } catch (userError) {
-            // 两种登录都失败
-            ElMessage.error('用户名或密码错误')
         }
+    } catch (error) {
+        const message = error.response?.data?.message || error.message || '登录失败'
+        ElMessage.error(message)
     } finally {
         loading.value = false
     }

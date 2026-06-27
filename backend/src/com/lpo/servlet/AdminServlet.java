@@ -33,6 +33,24 @@ public class AdminServlet extends HttpServlet {
     }
 
     @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String pathInfo = req.getPathInfo();
+        if (pathInfo == null) pathInfo = "";
+        System.out.println("[AdminServlet] DELETE request: " + pathInfo);
+
+        try {
+            if (pathInfo.matches("/users/\\d+")) {
+                deleteUser(req, resp);
+            } else {
+                ResponseUtil.error(resp, 404, "接口不存在");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            ResponseUtil.error(resp, 500, "服务器内部错误");
+        }
+    }
+
+    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null) pathInfo = "";
@@ -47,6 +65,83 @@ public class AdminServlet extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
             ResponseUtil.error(resp, 500, "服务器内部错误");
+        }
+    }
+
+    // ==================== 删除用户（踢出） ====================
+    private void deleteUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String authHeader = req.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            ResponseUtil.unauthorized(resp);
+            return;
+        }
+        String token = authHeader.substring(7);
+        if (!JwtUtil.isAdmin(token)) {
+            ResponseUtil.forbidden(resp);
+            return;
+        }
+
+        String pathInfo = req.getPathInfo();
+        int userId = Integer.parseInt(pathInfo.substring(pathInfo.lastIndexOf("/") + 1));
+        System.out.println("[AdminServlet] 删除用户 - userId: " + userId);
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = DbUtil.getConnection();
+            // 关闭自动提交，开启事务保证数据一致性
+            conn.setAutoCommit(false);
+
+            // 1. 将关联到该用户物品的消息的 item_id 置空（避免外键约束阻止删除物品）
+            String nullifyMsgItemsSql = "UPDATE messages m JOIN items i ON m.item_id = i.id SET m.item_id = NULL WHERE i.user_id = ?";
+            ps = conn.prepareStatement(nullifyMsgItemsSql);
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+            DbUtil.close(null, ps, null);
+
+            // 2. 删除该用户的所有消息（作为发送者或接收者）
+            String deleteMsgSql = "DELETE FROM messages WHERE sender_id = ? OR receiver_id = ?";
+            ps = conn.prepareStatement(deleteMsgSql);
+            ps.setInt(1, userId);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+            DbUtil.close(null, ps, null);
+
+            // 3. 删除该用户的认证记录
+            String deleteCertSql = "DELETE FROM certifications WHERE user_id = ?";
+            ps = conn.prepareStatement(deleteCertSql);
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+            DbUtil.close(null, ps, null);
+
+            // 4. 硬删除该用户的所有物品（解除 items.user_id → users.id 的外键约束）
+            String deleteItemsSql = "DELETE FROM items WHERE user_id = ?";
+            ps = conn.prepareStatement(deleteItemsSql);
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+            DbUtil.close(null, ps, null);
+
+            // 5. 最后删除用户
+            String deleteUserSql = "DELETE FROM users WHERE id = ? AND is_admin = 0";
+            ps = conn.prepareStatement(deleteUserSql);
+            ps.setInt(1, userId);
+            int rows = ps.executeUpdate();
+
+            if (rows > 0) {
+                conn.commit();
+                System.out.println("[AdminServlet] 删除用户成功 - userId: " + userId);
+                ResponseUtil.success(resp);
+            } else {
+                conn.rollback();
+                System.out.println("[AdminServlet] 删除用户失败 - 用户不存在或为管理员");
+                ResponseUtil.error(resp, 400, "用户不存在或不能删除管理员账号");
+            }
+        } catch (Exception e) {
+            try { if (conn != null) conn.rollback(); } catch (SQLException ignored) {}
+            e.printStackTrace();
+            ResponseUtil.error(resp, 500, "删除用户失败：" + e.getMessage());
+        } finally {
+            DbUtil.close(conn, ps);
         }
     }
 

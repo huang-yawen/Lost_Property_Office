@@ -12,10 +12,8 @@
         </div>
 
         <template v-else>
-            <!-- 页面标题 -->
-            <div class="dashboard-header">
-                <h1 class="dashboard-title">数据看板</h1>
-                <p class="dashboard-subtitle">校园失物招领全平台数据概览</p>
+            <div class="page-header-bar">
+                <h1 class="page-header-title">数据看板</h1>
             </div>
 
             <!-- 统计卡片 -->
@@ -546,12 +544,12 @@ html.dark .dashboard-page {
     background: transparent;
 }
 
-html.dark .dashboard-title {
-    color: #e0e0f0;
+html.dark .page-header-bar {
+    border-bottom-color: #2a2a3e;
 }
 
-html.dark .dashboard-subtitle {
-    color: #6a6a8a;
+html.dark .page-header-title {
+    color: #e0e0f0;
 }
 
 html.dark .stat-card {
@@ -602,23 +600,21 @@ html.dark .chart-title {
 
 /* ========== 数据看板 ========== */
 .dashboard-page {
-    padding: 8px;
+    min-height: 100%;
 }
 
-.dashboard-header {
-    margin-bottom: 24px;
+/* ========== 页面标题栏 ========== */
+.page-header-bar {
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 20px;
 }
 
-.dashboard-title {
-    font-size: 22px;
+.page-header-title {
+    font-size: 18px;
     font-weight: 700;
-    color: var(--text-primary, #4a4a6a);
-    margin-bottom: 4px;
-}
-
-.dashboard-subtitle {
-    font-size: 13px;
-    color: var(--text-secondary, #a0aec0);
+    color: #4a4a6a;
+    margin: 0;
 }
 
 /* 统计卡片 */

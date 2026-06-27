@@ -10,7 +10,7 @@
             </button>
         </div>
         <div class="topbar-right">
-            <template v-if="userStore.isLoggedIn">
+            <template v-if="isLoggedIn">
                 <router-link to="/messages" class="topbar-icon-btn" title="消息中心">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -26,7 +26,7 @@
                                 <circle cx="12" cy="7" r="4"/>
                             </svg>
                         </div>
-                        <span class="user-name-sm">{{ userStore.userInfo?.username }}</span>
+                        <span class="user-name-sm">{{ displayName }}</span>
                         <svg class="arrow-down" :class="{ open: showUserMenu }" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
@@ -34,14 +34,14 @@
 
                     <transition name="drop">
                         <div v-if="showUserMenu" class="user-dropdown">
-                            <router-link to="/user" class="drop-item" @click="showUserMenu = false">
+                            <router-link v-if="!isAdmin" to="/user" class="drop-item" @click="showUserMenu = false">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                     <circle cx="12" cy="7" r="4"/>
                                 </svg>
                                 个人中心
                             </router-link>
-                            <router-link to="/my-items" class="drop-item" @click="showUserMenu = false">
+                            <router-link v-if="!isAdmin" to="/my-items" class="drop-item" @click="showUserMenu = false">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="8" y1="6" x2="21" y2="6"/>
                                     <line x1="8" y1="12" x2="21" y2="12"/>
@@ -52,16 +52,7 @@
                                 </svg>
                                 我的发布
                             </router-link>
-                            <router-link v-if="isAdmin" to="/dashboard" class="drop-item" @click="showUserMenu = false">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="7" height="7"/>
-                                    <rect x="14" y="3" width="7" height="7"/>
-                                    <rect x="14" y="14" width="7" height="7"/>
-                                    <rect x="3" y="14" width="7" height="7"/>
-                                </svg>
-                                仪表盘
-                            </router-link>
-                            <router-link v-if="userStore.isLoggedIn && !isAdmin" to="/dashboard" class="drop-item" @click="showUserMenu = false">
+                            <router-link to="/dashboard" class="drop-item" @click="showUserMenu = false">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="3" width="7" height="7"/>
                                     <rect x="14" y="3" width="7" height="7"/>
@@ -70,6 +61,29 @@
                                 </svg>
                                 数据看板
                             </router-link>
+                            <template v-if="isAdmin">
+                                <div class="drop-divider"></div>
+                                <div class="drop-item" style="color: #a5b4fc; font-weight: 600;">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                    管理员
+                                </div>
+                                <router-link to="/admin/certification" class="drop-item" @click="showUserMenu = false">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M9 12l2 2 4-4"/>
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    </svg>
+                                    认证审核
+                                </router-link>
+                                <router-link to="/admin/users" class="drop-item" @click="showUserMenu = false">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                    </svg>
+                                    用户列表
+                                </router-link>
+                            </template>
                             <div class="drop-divider"></div>
                             <div class="drop-item" @click="toggleDarkMode">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -120,11 +134,23 @@ const showUserMenu = ref(false)
 const userMenuRef = ref(null)
 const unreadCount = ref(0)
 
-// 管理员身份：必须有 admin_token，且不能有普通用户 token（互斥）
-const isAdmin = computed(() => {
-    const hasAdminToken = !!localStorage.getItem('admin_token')
-    const hasUserToken = !!localStorage.getItem('token')
-    return hasAdminToken && !hasUserToken
+// 是否已登录（普通用户或管理员）
+const isLoggedIn = computed(() => userStore.isLoggedIn)
+
+// 管理员身份
+const isAdmin = computed(() => userStore.isAdmin)
+
+// 当前显示的显示名
+const displayName = computed(() => {
+    // 优先显示管理员信息
+    if (userStore.isAdmin && userStore.adminInfo) {
+        return userStore.adminInfo.nickname || userStore.adminInfo.username || '管理员'
+    }
+    // 普通用户
+    if (userStore.userInfo) {
+        return userStore.userInfo.nickname || userStore.userInfo.username || '用户'
+    }
+    return '用户'
 })
 
 function toggleDarkMode() {
@@ -145,7 +171,7 @@ function handleClickOutside(e) {
 }
 
 async function fetchUnreadCount() {
-    if (!userStore.isLoggedIn) return
+    if (!userStore.isLoggedIn || userStore.isAdmin) return
     try {
         const res = await messageApi.getUnreadCount()
         unreadCount.value = res.data || 0

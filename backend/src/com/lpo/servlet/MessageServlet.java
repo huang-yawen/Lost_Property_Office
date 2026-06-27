@@ -363,7 +363,8 @@ public class MessageServlet extends HttpServlet {
         }
 
         Map<String, Object> body = JsonUtil.toMap(readBody(req));
-        Integer messageId = body.get("message_id") != null ? ((Double) body.get("message_id")).intValue() : null;
+        Object msgIdObj = body.get("message_id");
+        Integer messageId = msgIdObj != null ? ((Number) msgIdObj).intValue() : null;
         System.out.println("[MessageServlet] markAsRead - userId=" + userId + ", messageId=" + messageId);
 
         Connection conn = null;

@@ -86,11 +86,10 @@ router.beforeEach((to, from, next) => {
     // 设置页面标题
     document.title = to.meta.title || '校园失物招领'
 
-    // 检查是否需要管理员登录（必须有 admin_token 且不能有普通用户 token）
+    // 检查是否需要管理员登录
     if (to.meta.requiresAdmin) {
-        const adminToken = localStorage.getItem('admin_token')
-        const userToken = localStorage.getItem('token')
-        if (!adminToken || userToken) {
+        const userStore = useUserStore()
+        if (!userStore.isAdmin) {
             next({ name: 'Login', query: { redirect: to.fullPath } })
             return
         }

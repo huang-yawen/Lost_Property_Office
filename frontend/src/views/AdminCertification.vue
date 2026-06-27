@@ -1,29 +1,32 @@
 <template>
     <div class="admin-cert-page">
-        <div class="admin-cert-header">
-            <h1>认证审核管理</h1>
-            <div class="admin-cert-tabs">
+        <div class="page-header-bar">
+            <h1 class="page-header-title">认证审核</h1>
+        </div>
+        <div class="admin-cert-tabs">
                 <button
-                    :class="['tab-btn', { active: activeTab === 'pending' }]"
+                    class="tab-btn"
+                    :class="{ active: activeTab === 'pending' }"
                     @click="activeTab = 'pending'"
                 >
                     待审核
-                    <span v-if="pendingCount > 0" class="tab-count">{{ pendingCount }}</span>
+                    <span class="tab-count" v-if="pendingCount > 0">{{ pendingCount }}</span>
                 </button>
                 <button
-                    :class="['tab-btn', { active: activeTab === 'approved' }]"
+                    class="tab-btn"
+                    :class="{ active: activeTab === 'approved' }"
                     @click="activeTab = 'approved'"
                 >
                     已通过
                 </button>
                 <button
-                    :class="['tab-btn', { active: activeTab === 'rejected' }]"
+                    class="tab-btn"
+                    :class="{ active: activeTab === 'rejected' }"
                     @click="activeTab = 'rejected'"
                 >
                     已拒绝
                 </button>
             </div>
-        </div>
 
         <div class="admin-cert-body">
             <!-- 加载状态 -->
@@ -34,17 +37,10 @@
 
             <!-- 空状态 -->
             <div v-else-if="list.length === 0" class="empty-state">
-                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#c0c4cc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
-                    <polyline points="10 9 9 9 8 9"/>
-                </svg>
                 <p>{{ emptyText }}</p>
             </div>
 
-            <!-- 列表 -->
+            <!-- 认证列表 -->
             <div v-else class="cert-list">
                 <div
                     v-for="item in list"
@@ -54,29 +50,29 @@
                 >
                     <div class="cert-card-left">
                         <div class="cert-avatar">
-                            {{ item.username?.charAt(0)?.toUpperCase() || '?' }}
+                            {{ (item.nickname || item.username || '?').charAt(0).toUpperCase() }}
                         </div>
                         <div class="cert-info">
                             <div class="cert-info-row">
-                                <span class="cert-username">{{ item.username || '未知用户' }}</span>
-                                <span class="cert-status" :class="'status-' + (item.certificationStatus || item.status)">
-                                    {{ statusMap[item.certificationStatus || item.status] || '未知' }}
+                                <span class="cert-username">{{ item.nickname || item.username || '未知用户' }}</span>
+                                <span class="cert-status" :class="'status-' + item.status">
+                                    {{ statusMap[item.status] || '未知' }}
                                 </span>
                             </div>
                             <div class="cert-info-row cert-details">
-                                <span>{{ item.realName || '未填写' }}</span>
+                                <span>{{ item.real_name || '未填写' }}</span>
                                 <span class="dot">·</span>
-                                <span>{{ item.studentId || '未填写' }}</span>
+                                <span>{{ item.student_id || '未填写' }}</span>
                                 <span class="dot">·</span>
-                                <span>{{ item.department || '未填写' }}</span>
+                                <span>{{ item.campus || '未填写' }}</span>
                             </div>
                             <div class="cert-info-row cert-time">
-                                {{ formatTime(item.createTime || item.submitTime) }}
+                                {{ formatTime(item.created_at) }}
                             </div>
                         </div>
                     </div>
 
-                    <div class="cert-card-right" v-if="(item.certificationStatus || item.status) === 'pending' || (item.certificationStatus || item.status) === 0">
+                    <div class="cert-card-right" v-if="item.status === 'pending'">
                         <button class="action-btn action-approve" @click.stop="handleApprove(item)" title="通过认证">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="20 6 9 17 4 12"/>
@@ -90,17 +86,6 @@
                             </svg>
                             拒绝
                         </button>
-                    </div>
-
-                    <div class="cert-card-right" v-else-if="item.rejectReason">
-                        <div class="reject-hint">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <line x1="12" y1="8" x2="12" y2="12"/>
-                                <line x1="12" y1="16" x2="12.01" y2="16"/>
-                            </svg>
-                            <span>{{ item.rejectReason }}</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -118,47 +103,33 @@
                         </div>
                         <div class="detail-field">
                             <label>真实姓名</label>
-                            <span>{{ detailItem.realName || '未填写' }}</span>
+                            <span>{{ detailItem.real_name || '未填写' }}</span>
                         </div>
                         <div class="detail-field">
                             <label>学号/工号</label>
-                            <span>{{ detailItem.studentId || '未填写' }}</span>
+                            <span>{{ detailItem.student_id || '未填写' }}</span>
                         </div>
                         <div class="detail-field">
-                            <label>学院/部门</label>
-                            <span>{{ detailItem.department || '未填写' }}</span>
-                        </div>
-                        <div class="detail-field" v-if="detailItem.phone">
-                            <label>手机号</label>
-                            <span>{{ detailItem.phone }}</span>
+                            <label>学院/校区</label>
+                            <span>{{ detailItem.campus || '未填写' }}</span>
                         </div>
                         <div class="detail-field">
                             <label>申请状态</label>
-                            <span class="cert-status" :class="'status-' + (detailItem.certificationStatus || detailItem.status)">
-                                {{ statusMap[detailItem.certificationStatus || detailItem.status] || '未知' }}
+                            <span class="cert-status" :class="'status-' + detailItem.status">
+                                {{ statusMap[detailItem.status] || '未知' }}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <div class="detail-section" v-if="detailItem.reason">
-                    <h3 class="detail-section-title">认证说明</h3>
-                    <p class="detail-reason">{{ detailItem.reason }}</p>
-                </div>
-
-                <div class="detail-section" v-if="detailItem.rejectReason">
-                    <h3 class="detail-section-title">拒绝原因</h3>
-                    <p class="detail-reason detail-reject">{{ detailItem.rejectReason }}</p>
-                </div>
-
-                <div class="detail-section" v-if="detailItem.certificationImage">
-                    <h3 class="detail-section-title">学生证图片</h3>
+                <div class="detail-section" v-if="detailItem.id_card">
+                    <h3 class="detail-section-title">证件照片</h3>
                     <div class="detail-image-wrapper">
                         <img
-                            :src="detailItem.certificationImage"
-                            alt="学生证"
+                            :src="detailItem.id_card"
+                            alt="证件照片"
                             class="detail-image"
-                            @click="openPreview(detailItem.certificationImage)"
+                            @click="openPreview(detailItem.id_card)"
                         />
                         <p class="detail-image-hint">点击图片可放大查看</p>
                     </div>
@@ -166,10 +137,10 @@
 
                 <div class="detail-section">
                     <h3 class="detail-section-title">提交时间</h3>
-                    <p class="detail-time">{{ formatTime(detailItem.createTime || detailItem.submitTime) }}</p>
+                    <p class="detail-time">{{ formatTime(detailItem.created_at) }}</p>
                 </div>
 
-                <div class="detail-actions" v-if="(detailItem.certificationStatus || detailItem.status) === 'pending' || (detailItem.certificationStatus || detailItem.status) === 0">
+                <div class="detail-actions" v-if="detailItem.status === 'pending'">
                     <button class="detail-action-btn detail-action-approve" @click="handleApprove(detailItem)">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"/>
@@ -188,9 +159,9 @@
         </el-dialog>
 
         <!-- 图片预览对话框 -->
-        <el-dialog v-model="showPreviewDialog" title="学生证预览" width="600px" :close-on-click-modal="true" @close="previewImage = ''">
+        <el-dialog v-model="showPreviewDialog" title="证件照片预览" width="600px" :close-on-click-modal="true" @close="previewImage = ''">
             <div class="preview-wrapper" v-if="previewImage">
-                <img :src="previewImage" alt="学生证预览" class="preview-image" />
+                <img :src="previewImage" alt="证件照片预览" class="preview-image" />
             </div>
         </el-dialog>
 
@@ -242,10 +213,7 @@ const currentRejectItem = ref(null)
 const statusMap = {
     'pending': '待审核',
     'approved': '已通过',
-    'rejected': '已拒绝',
-    0: '待审核',
-    1: '已通过',
-    2: '已拒绝'
+    'rejected': '已拒绝'
 }
 
 const emptyText = computed(() => {
@@ -288,7 +256,7 @@ async function fetchList() {
 async function handleApprove(item) {
     try {
         await ElMessageBox.confirm(
-            `确认通过用户 "${item.username}" 的认证申请？`,
+            `确认通过用户 "${item.nickname || item.username}" 的认证申请？`,
             '确认通过',
             {
                 confirmButtonText: '确认通过',
@@ -296,7 +264,11 @@ async function handleApprove(item) {
                 type: 'success'
             }
         )
-        await adminApi.reviewCertification({ userId: item.userId || item.id, action: 'approve' })
+        // 后端 PUT /admin/certifications/{userId} 期望 { status: 'approved' }
+        await adminApi.reviewCertification({
+            userId: item.user_id,
+            status: 'approved'
+        })
         ElMessage.success('已通过认证')
         showDetailDialog.value = false
         fetchList()
@@ -335,10 +307,10 @@ async function confirmReject() {
     }
     rejecting.value = true
     try {
+        // 后端 PUT /admin/certifications/{userId} 期望 { status: 'rejected' }
         await adminApi.reviewCertification({
-            userId: currentRejectItem.value.userId || currentRejectItem.value.id,
-            action: 'reject',
-            reason: rejectReason.value.trim()
+            userId: currentRejectItem.value.user_id,
+            status: 'rejected'
         })
         ElMessage.success('已拒绝认证')
         showRejectDialog.value = false
@@ -364,15 +336,18 @@ watch(activeTab, () => {
     min-height: 100%;
 }
 
-.admin-cert-header {
-    padding: 0 0 20px;
+/* ========== 页面标题栏 ========== */
+.page-header-bar {
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 20px;
 }
 
-.admin-cert-header h1 {
-    font-size: 20px;
+.page-header-title {
+    font-size: 18px;
     font-weight: 700;
     color: #4a4a6a;
-    margin: 0 0 16px;
+    margin: 0;
 }
 
 .admin-cert-tabs {
@@ -597,22 +572,6 @@ watch(activeTab, () => {
     border-color: #dc2626;
 }
 
-/* 拒绝原因提示 */
-.reject-hint {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #dc2626;
-    max-width: 200px;
-}
-
-.reject-hint span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 /* 详情对话框 */
 .detail-content {
     max-height: 70vh;
@@ -656,21 +615,6 @@ watch(activeTab, () => {
 .detail-field span {
     font-size: 14px;
     color: #4a4a6a;
-}
-
-.detail-reason {
-    margin: 0;
-    font-size: 14px;
-    color: #4a5568;
-    line-height: 1.6;
-    padding: 12px;
-    background: #f8f9fc;
-    border-radius: 8px;
-}
-
-.detail-reject {
-    color: #dc2626;
-    background: #fef2f2;
 }
 
 .detail-image-wrapper {
@@ -797,7 +741,11 @@ watch(activeTab, () => {
 }
 
 /* 暗黑模式 */
-html.dark .admin-cert-header h1 {
+html.dark .page-header-bar {
+    border-bottom-color: #2a2a3e;
+}
+
+html.dark .page-header-title {
     color: #e0e0f0;
 }
 
@@ -846,16 +794,6 @@ html.dark .action-btn {
 
 html.dark .detail-field span {
     color: #c8c8d8;
-}
-
-html.dark .detail-reason {
-    background: #0f0f1a;
-    color: #c8c8d8;
-}
-
-html.dark .detail-reject {
-    background: #2a1a1a;
-    color: #f87171;
 }
 
 html.dark .detail-image {

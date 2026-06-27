@@ -281,6 +281,9 @@ export const adminApi = {
     },
     getUsers() {
         return adminRequest.get('/admin/users')
+    },
+    deleteUser(userId) {
+        return adminRequest.delete(`/admin/users/${userId}`)
     }
 }
 

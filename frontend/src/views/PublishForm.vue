@@ -1,17 +1,9 @@
 <template>
     <div class="publish-form-page">
-        <!-- <div class="pf-header">
-            <button class="pf-back" @click="goBack">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"/>
-                    <polyline points="12 19 5 12 12 5"/>
-                </svg>
-                返回
-            </button>
-            <h1 class="pf-title">{{ isEdit ? '编辑信息' : typeLabel }}</h1>
-        </div> -->
-
-        <div class="pf-body">
+        <div class="page-header-bar">
+            <h1 class="page-header-title">{{ isEdit ? '编辑信息' : typeLabel }}</h1>
+        </div>
+        <div class="pf-body" style="margin-top: 5px;padding-top: 0px;">
             <form class="pf-form" @submit.prevent="handleSubmit">
                 <!-- 信息类型选择 -->
                 <div class="pf-field pf-field-row">
@@ -417,21 +409,11 @@ html.dark .publish-form-page {
     background: transparent;
 }
 
-html.dark .pf-header {
-    background: #1a1a2e;
+html.dark .page-header-bar {
     border-bottom-color: #2a2a3e;
 }
 
-html.dark .pf-back {
-    color: #8a8aa0;
-}
-
-html.dark .pf-back:hover {
-    background: #2a2a4e;
-    color: #a5b4fc;
-}
-
-html.dark .pf-title {
+html.dark .page-header-title {
     color: #e0e0f0;
 }
 
@@ -508,6 +490,20 @@ html.dark .pf-radio-item {
     color: #c8c8d8;
 }
 
+/* ========== 页面标题栏 ========== */
+.page-header-bar {
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+}
+
+.page-header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4a4a6a;
+    margin: 0;
+}
+
 /* ========== 发布表单页 ========== */
 .publish-form-page {
     min-height: 100%;
@@ -515,48 +511,12 @@ html.dark .pf-radio-item {
     flex-direction: column;
 }
 
-.pf-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    background: #fff;
-    border-bottom: 1px solid #e2e8f0;
-    flex-shrink: 0;
-}
-
-.pf-back {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: none;
-    border: none;
-    font-size: 14px;
-    color: #4a5568;
-    cursor: pointer;
-    padding: 6px 12px;
-    border-radius: 4px;
-    transition: all 0.2s;
-}
-
-.pf-back:hover {
-    background: #f0f2f5;
-    color: #4f46e5;
-}
-
-.pf-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #4a4a6a;
-    margin: 0;
-}
-
 .pf-body {
     flex: 1;
-    max-width: 780px;
-    width: 100%;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 28px 20px 50px;
+    width: 100%;
+    padding: 28px 0 50px;
 }
 
 .pf-form {

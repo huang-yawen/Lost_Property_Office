@@ -1,6 +1,9 @@
 <template>
     <div class="detail-page">
         <div class="detail-container">
+            <div class="page-header-bar">
+                <h1 class="page-header-title">物品详情</h1>
+            </div>
             <!-- 加载状态 -->
             <div v-if="loading" class="loading-section">
                 <div class="skeleton-detail">
@@ -577,6 +580,28 @@ html.dark .match-card-img {
     background: #0f0f1a;
 }
 
+/* ========== 页面标题栏 ========== */
+.page-header-bar {
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+}
+
+.page-header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4a4a6a;
+    margin: 0;
+}
+
+html.dark .page-header-bar {
+    border-bottom-color: #2a2a3e;
+}
+
+html.dark .page-header-title {
+    color: #e0e0f0;
+}
+
 /* ========== 详情页 ========== */
 .detail-page {
     min-height: 100vh;
@@ -584,9 +609,7 @@ html.dark .match-card-img {
 }
 
 .detail-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 84px 24px 60px;
+    padding: 84px 0 60px;
 }
 
 /* 加载状态 */

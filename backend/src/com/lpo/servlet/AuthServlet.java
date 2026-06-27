@@ -450,7 +450,7 @@ public class AuthServlet extends HttpServlet {
         }
 
         Map<String, Object> body = JsonUtil.toMap(readBody(req));
-        Integer userId = ((Double) body.get("user_id")).intValue();
+        Integer userId = ((Number) body.get("user_id")).intValue();
         String status = (String) body.get("status");
         System.out.println("[AuthServlet] 审核认证 - userId: " + userId + ", status: " + status);
 
@@ -467,6 +467,11 @@ public class AuthServlet extends HttpServlet {
 
             if ("approved".equals(status)) {
                 sql = "UPDATE users SET is_certified = 1 WHERE id = ?";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, userId);
+                ps.executeUpdate();
+            } else if ("rejected".equals(status)) {
+                sql = "UPDATE users SET is_certified = 0 WHERE id = ?";
                 ps = conn.prepareStatement(sql);
                 ps.setInt(1, userId);
                 ps.executeUpdate();
@@ -496,7 +501,7 @@ public class AuthServlet extends HttpServlet {
         try {
             conn = DbUtil.getConnection();
             String sql = "SELECT id, username, nickname, avatar, reputation, campus, is_certified " +
-                    "FROM users ORDER BY reputation DESC LIMIT ?";
+                    "FROM users WHERE is_admin = 0 ORDER BY reputation DESC LIMIT ?";
             ps = conn.prepareStatement(sql);
             ps.setInt(1, top);
             rs = ps.executeQuery();
@@ -537,8 +542,8 @@ public class AuthServlet extends HttpServlet {
         }
 
         Map<String, Object> body = JsonUtil.toMap(readBody(req));
-        Integer userId = ((Double) body.get("user_id")).intValue();
-        Integer reputation = ((Double) body.get("reputation")).intValue();
+        Integer userId = ((Number) body.get("user_id")).intValue();
+        Integer reputation = ((Number) body.get("reputation")).intValue();
         System.out.println("[AuthServlet] 更新信誉积分 - userId: " + userId + ", reputation: " + reputation);
 
         Connection conn = null;

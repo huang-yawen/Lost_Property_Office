@@ -1,6 +1,9 @@
 <template>
     <div class="home-page">
         <div class="main-content">
+            <div class="page-header-bar">
+                <h1 class="page-header-title">首页</h1>
+            </div>
             <!-- 搜索栏 -->
             <div class="search-section">
                 <div class="search-box">
@@ -838,6 +841,28 @@ html.dark .empty-section p {
 
 html.dark .item-image {
     background: #2a2a3e;
+}
+
+html.dark .page-header-bar {
+    border-bottom-color: #2a2a3e;
+}
+
+html.dark .page-header-title {
+    color: #e0e0f0;
+}
+
+/* ========== 页面标题栏 ========== */
+.page-header-bar {
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+}
+
+.page-header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4a4a6a;
+    margin: 0;
 }
 
 /* ========== 首页 ========== */
