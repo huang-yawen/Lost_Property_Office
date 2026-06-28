@@ -891,6 +891,7 @@ public class ItemServlet extends HttpServlet {
     }
 
     // ==================== 将 ResultSet 转为 Map（统一字段名） ====================
+    //    按照分类和日期进行推荐
     private Map<String, Object> itemToMap(ResultSet rs) throws SQLException {
         Map<String, Object> map = new HashMap<>();
         map.put("id", rs.getInt("id"));

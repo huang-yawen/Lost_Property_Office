@@ -22,7 +22,7 @@ public class CorsFilter implements Filter {
         String origin = req.getHeader("Origin");
         System.out.println("[CorsFilter] 收到请求: " + req.getMethod() + " " + req.getRequestURI() + " 来源: " + origin);
 
-        // 允许所有来源（注意：Access-Control-Allow-Credentials 为 true 时不能使用 *）
+        // 允许所有来源
         if (origin != null && !origin.isEmpty()) {
             resp.setHeader("Access-Control-Allow-Origin", origin);
         } else {

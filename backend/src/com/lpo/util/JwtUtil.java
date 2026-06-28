@@ -16,7 +16,7 @@ public class JwtUtil {
         Date expiration = new Date(now.getTime() + EXPIRATION);
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
-                .claim("username", username)
+                .claim("username", username)//自定义的键值对，可以塞任何想附带的信息
                 .claim("isAdmin", isAdmin)
                 .setIssuedAt(now)
                 .setExpiration(expiration)
