@@ -236,20 +236,34 @@
                         <p>上传学生证或校园卡照片进行校园身份认证</p>
                     </div>
                 </div>
-                <div v-if="!userInfo?.certified && userInfo?.certificationStatus !== 'pending'" class="form-field">
-                    <label class="form-label">上传学生证/校园卡照片</label>
-                    <div class="upload-area" @click="triggerCertUpload">
-                        <img v-if="certImagePreview" :src="certImagePreview" class="upload-preview" />
-                        <div v-else class="upload-placeholder">
-                            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#9ca3af" stroke-width="1.5">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="17 8 12 3 7 8"/>
-                                <line x1="12" y1="3" x2="12" y2="15"/>
-                            </svg>
-                            <span>点击上传照片</span>
-                        </div>
+                <div v-if="!userInfo?.certified && userInfo?.certificationStatus !== 'pending'" class="cert-form-fields">
+                    <div class="form-field">
+                        <label class="form-label">真实姓名 <span style="color: #ef4444;">*</span></label>
+                        <el-input v-model="certForm.real_name" placeholder="请输入真实姓名" class="form-input" />
                     </div>
-                    <input ref="certFileInput" type="file" accept="image/*" style="display:none" @change="onCertFileChange" />
+                    <div class="form-field">
+                        <label class="form-label">学号/工号 <span style="color: #ef4444;">*</span></label>
+                        <el-input v-model="certForm.student_id" placeholder="请输入学号或工号" class="form-input" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">学院/校区</label>
+                        <el-input v-model="certForm.campus" placeholder="请输入所在学院或校区（可选）" class="form-input" />
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">上传学生证/校园卡照片 <span style="color: #ef4444;">*</span></label>
+                        <div class="upload-area" @click="triggerCertUpload">
+                            <img v-if="certImagePreview" :src="certImagePreview" class="upload-preview" />
+                            <div v-else class="upload-placeholder">
+                                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#9ca3af" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                                <span>点击上传照片</span>
+                            </div>
+                        </div>
+                        <input ref="certFileInput" type="file" accept="image/*" style="display:none" @change="onCertFileChange" />
+                    </div>
                 </div>
             </div>
             <template #footer>
@@ -337,6 +351,12 @@ const passwordForm = ref({
     oldPassword: '',
     newPassword: '',
     confirmPassword: ''
+})
+
+const certForm = ref({
+    real_name: '',
+    student_id: '',
+    campus: ''
 })
 
 const stats = ref({
@@ -474,19 +494,34 @@ function onCertFileChange(e) {
 }
 
 async function submitCertification() {
+    if (!certForm.value.real_name.trim()) {
+        ElMessage.warning('请输入真实姓名')
+        return
+    }
+    if (!certForm.value.student_id.trim()) {
+        ElMessage.warning('请输入学号/工号')
+        return
+    }
     if (!certImageData.value) {
         ElMessage.warning('请上传学生证或校园卡照片')
         return
     }
     certSubmitting.value = true
     try {
-        const res = await authApi.submitCertification({ image: certImageData.value })
+        const res = await authApi.submitCertification({
+            real_name: certForm.value.real_name,
+            student_id: certForm.value.student_id,
+            campus: certForm.value.campus || '',
+            id_card: certImageData.value
+        })
         if (res.code === 200) {
             ElMessage.success('认证申请已提交，请等待管理员审核')
             showCertification.value = false
             if (res.data) {
-                userStore.setUserInfo(res.data)
-                userInfo.value = res.data
+                // 更新本地和 store 中的用户信息
+                userInfo.value = { ...userInfo.value, ...res.data }
+                userStore.userInfo = { ...userStore.userInfo, ...res.data }
+                localStorage.setItem('userInfo', JSON.stringify(userStore.userInfo))
             }
         }
     } catch (error) {

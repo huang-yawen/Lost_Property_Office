@@ -69,7 +69,7 @@ CREATE TABLE certifications (
     real_name VARCHAR(50) NOT NULL COMMENT '真实姓名',
     student_id VARCHAR(50) NOT NULL COMMENT '学号',
     campus VARCHAR(50) DEFAULT NULL COMMENT '校区',
-    id_card VARCHAR(50) DEFAULT NULL COMMENT '身份证号',
+    id_card LONGTEXT DEFAULT NULL COMMENT '证件照片/base64图片',
     status VARCHAR(20) DEFAULT 'pending' COMMENT '状态：pending=待审核, approved=通过, rejected=拒绝',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     FOREIGN KEY (user_id) REFERENCES users(id)

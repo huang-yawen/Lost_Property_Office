@@ -121,6 +121,9 @@ public class AuthServlet extends HttpServlet {
                 user.put("reputation", rs.getInt("reputation"));
                 user.put("is_certified", rs.getInt("is_certified"));
                 user.put("is_admin", rs.getInt("is_admin"));
+                // 添加前端需要的字段
+                user.put("certified", rs.getInt("is_certified") == 1);
+                user.put("certificationStatus", getCertificationStatus(rs.getInt("id")));
 
                 Map<String, Object> data = new HashMap<>();
                 data.put("token", token);
@@ -194,6 +197,9 @@ public class AuthServlet extends HttpServlet {
                 user.put("reputation", 100);
                 user.put("is_certified", 0);
                 user.put("is_admin", 0);
+                // 添加前端需要的字段
+                user.put("certified", false);
+                user.put("certificationStatus", null);
 
                 Map<String, Object> data = new HashMap<>();
                 data.put("token", token);
@@ -249,6 +255,9 @@ public class AuthServlet extends HttpServlet {
                 user.put("is_certified", rs.getInt("is_certified"));
                 user.put("is_admin", rs.getInt("is_admin"));
                 user.put("created_at", rs.getString("created_at"));
+                // 添加前端需要的字段
+                user.put("certified", rs.getInt("is_certified") == 1);
+                user.put("certificationStatus", getCertificationStatus(rs.getInt("id")));
                 System.out.println("[AuthServlet] 获取用户信息成功 - username: " + rs.getString("username"));
                 ResponseUtil.success(resp, user);
             } else {
@@ -370,13 +379,39 @@ public class AuthServlet extends HttpServlet {
             ps.setString(5, idCard);
             ps.executeUpdate();
             System.out.println("[AuthServlet] 提交认证成功 - userId: " + userId);
-            ResponseUtil.success(resp);
+            // 返回更新后的用户信息
+            Map<String, Object> updatedUser = new HashMap<>();
+            updatedUser.put("certified", false);
+            updatedUser.put("certificationStatus", "pending");
+            ResponseUtil.success(resp, updatedUser);
         } catch (SQLException e) {
             e.printStackTrace();
             ResponseUtil.error(resp, 500, "提交认证失败");
         } finally {
             DbUtil.close(conn, ps);
         }
+    }
+
+    // ==================== 获取认证审核状态 ====================
+    private String getCertificationStatus(int userId) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            conn = DbUtil.getConnection();
+            String sql = "SELECT status FROM certifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 1";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("status");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DbUtil.close(conn, ps, rs);
+        }
+        return null;
     }
 
     // ==================== 获取认证列表（管理员） ====================
